@@ -1,7 +1,8 @@
 {
-  "name": "vite-browser",
+  "name": "ec2bench",
   "private": true,
   "version": "0.0.1",
+  "homepage": "https://TUM-DIS.github.io/EC2Bench/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
