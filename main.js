@@ -100,7 +100,7 @@ async function createTable() {
                 {
                     text: 'DuckDB [Whole Database]',
                     action: function (e, dt, node, config) {
-                        window.location.href = 'static/benchmark.duckdb'; // Target URL
+                        window.location.href = 'https://github.com/TUM-DIS/EC2Bench/blob/main/static/benchmark.duckdb'; // Target URL
                     },
                     className: 'btn btn-primary'  // Bootstrap styling (optional)
                 }]
