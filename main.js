@@ -104,7 +104,9 @@ async function createTable() {
                         window.location.href = 'https://github.com/TUM-DIS/EC2Bench/blob/main/static/benchmark.duckdb'; // Target URL
                     },
                     className: 'btn btn-primary'  // Bootstrap styling (optional)
-                }]
+                }],
+                pageLength: 100, // default row count
+                lengthMenu: [10, 25, 50, 100, 200]
         });
     }
 }
