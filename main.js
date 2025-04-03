@@ -12,16 +12,61 @@ import 'datatables.net-responsive-dt';
 // Load static DuckDB database from GitHub
 import dbfile from './static/benchmark.duckdb?url';
 
+
+// Helpers for encoding query in URL
+function base64Encode(str) {
+    return btoa(encodeURIComponent(str)); // Encode to Base64
+}
+
+function base64Decode(str) {
+    try {
+        return decodeURIComponent(atob(str)); // Decode from Base64
+    } catch (e) {
+        return ""; // Handle invalid Base64
+    }
+}
+
+function getQueryParam(name) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name);
+}
+
+function setQueryParam(name, value) {
+    const params = new URLSearchParams();
+    params.set(name, value);
+    return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast("Link copied to clipboard!");
+    }).catch(err => console.error("Failed to copy: ", err));
+}
+
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+
+    setTimeout(() => { toast.classList.remove("show"); }, 2000);
+}
+
+const defaultQuery = "SELECT name AS Name, on_demand_price AS \"On-Demand Price [$/h]\", vcpu AS vCPUs, memory AS \"Memory [GB]\", round(singlecore_spec_int_base/on_demand_price, 2) as \"SPEC/$\" FROM aws where \"SPEC/$\" > 0 order by \"SPEC/$\" desc";
+
 // Text Editor with Syntax Highlighting
 let editor;
 document.addEventListener("DOMContentLoaded", function () {
+    const base64Query = getQueryParam("query");
+    const initialContent = base64Query ? base64Decode(base64Query) : defaultQuery;
     editor = CodeMirror.fromTextArea(document.getElementById("sql-editor"), {
         mode: "text/x-sql", // SQL mode
         lineNumbers: true, // Show line numbers
         matchBrackets: true, // Highlight matching brackets
         autoCloseBrackets: true // Auto-close brackets
     });
+    editor.setValue(initialContent);
 });
+
 
 const MANUAL_BUNDLES = {
     mvp: {
@@ -104,16 +149,23 @@ async function createTable() {
                         window.location.href = 'https://github.com/TUM-DIS/EC2Bench/blob/main/static/benchmark.duckdb'; // Target URL
                     },
                     className: 'btn btn-primary'  // Bootstrap styling (optional)
+                },
+                {
+                    text: 'Share',
+                    action: function () {
+                        const encodedQuery = base64Encode(query);
+                        const shareableLink = setQueryParam("query", encodedQuery);
+                        copyToClipboard(shareableLink);
+                    }
                 }],
-                pageLength: 100, // default row count
-                lengthMenu: [10, 25, 50, 100, 200]
+            pageLength: 100, // default row count
+            lengthMenu: [10, 25, 50, 100, 200]
         });
     }
 }
 
 // Render initial table with our sample query
 let dataTables = await createTable();
-
 $(document).ready(async function () {
     $("#load-table").on("click", async function (e) {
         e.preventDefault();
@@ -126,7 +178,6 @@ $(document).ready(async function () {
 
     document.addEventListener('keydown', async function (event) {
         if (event.ctrlKey && event.key == "Enter") {
-            //e.preventDefault();
             $("#error-msg").text("");
             dataTables.clear();
             dataTables.destroy();

@@ -33,9 +33,10 @@
 <body>
   <div id="app">
     <div>
-      <textarea id="sql-editor">SELECT name AS Name, on_demand_price AS "On-Demand Price [$/h]", vcpu AS vCPUs, memory AS "Memory [GB]", round(singlecore_spec_int_base/on_demand_price, 2) as "SPEC/$" FROM aws where "SPEC/$" > 0 order by "SPEC/$" desc;</textarea>
+      <textarea id="sql-editor"></textarea>
       <input type="submit" id="load-table" name="load-table" value="Execute">
     </div>
+    <div id="toast" class="toast">Link copied to clipboard!</div>
     <div id="error-msg"></div>
     <table id="ec2-instances" class="display">
     </table>
