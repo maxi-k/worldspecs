@@ -51,7 +51,7 @@ function showToast(message) {
     setTimeout(() => { toast.classList.remove("show"); }, 2000);
 }
 
-const defaultQuery = "SELECT name AS Name, on_demand_price AS \"On-Demand Price\", vcpu AS vCPUs, memory AS \"Memory [GB]\", round(singlecore_spec_int_base/on_demand_price, 2) as \"SPEC/$\" FROM aws where \"SPEC/$\" > 0 order by \"SPEC/$\" desc";
+const defaultQuery = "SELECT name AS Name, on_demand_price AS \"On-Demand Price\", vcpu AS vCPUs, memory AS \"Memory [GB]\", round(singlecore_spec_int_base/on_demand_price, 2) as \"SPEC/$\"\nFROM aws\nWHERE \"SPEC/$\" > 0\nORDER BY \"SPEC/$\" DESC";
 
 // Text Editor with Syntax Highlighting
 let editor;
@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         let reval = document.getElementById("r-eval");
         // append editor and graphic output area
         reval.innerHTML += '<textarea id="r-editor" class="form-control" rows="10" placeholder="Enter R code here"></textarea>';
-        reval.innerHTML += '<button id="execute-r">Plot</button>';
+        reval.innerHTML += '<button id="execute-r">Plot [Ctrl+Enter]</button>';
         reval.innerHTML += '<div id="r-status" class="output">Loading R...</div>';
         reval.innerHTML += '<div id="r-output" class="output"></div>';
         // load module
