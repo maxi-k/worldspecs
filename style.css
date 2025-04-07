@@ -19,7 +19,7 @@ thead {
   text-align: right !important;
 }
 
-#load-table {
+#load-table, #execute-r {
   width: 100%;
   margin-top: 10px;
   padding: 10px 15px;
@@ -54,10 +54,13 @@ thead {
 }
 
 .CodeMirror {
-  height: 20vh !important;
+  min-height: 15vh;
+  max-height: 50vh;
+  height: 20vh;
   border: 1px solid #ccc;
   font-size: 14px;
   line-height: 1.4;
+  resize: vertical;
   /* Ensures text is properly aligned */
 }
 
@@ -1065,4 +1068,51 @@ html.dark .dt-container .dt-paging .dt-paging-button:active {
 
 *[dir=rtl] div.dt-container div.dt-search input {
   margin: 0 3px 0 0;
+}
+
+
+#r-eval {
+  margin: 0 0 1em 0;
+  padding-bottom: 1em;
+  border-bottom: 1px solid #ccc;
+}
+
+#r-status {
+  padding: .5em 0;
+  margin: .1em 0;
+}
+
+#r-status::before {
+  content: "R Status: ";
+  font-weight: bold;
+}
+
+#r-output {
+}
+
+.tab-links {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tab-links li {
+  display: inline-block;
+  margin-right: 2px;
+  border-top: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  background-color: #eee;
+}
+
+.tab-links li.ui-state-active {
+  background-color: #fff;
+  font-weight: bold;
+}
+
+.tab-links a {
+  display: block;
+  padding: .5em 1em;
+  text-decoration: none;
+  color: #000;
 }
