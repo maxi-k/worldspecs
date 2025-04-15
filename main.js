@@ -10,7 +10,7 @@ import eh_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url'
 import 'datatables.net-responsive-dt';
 
 // Load static DuckDB database from GitHub
-import dbfile from './static/benchmark.duckdb?url';
+import dbfile from './static/cloudspecs.duckdb?url';
 
 
 // Helpers for encoding query in URL
@@ -51,7 +51,7 @@ function showToast(message) {
     setTimeout(() => { toast.classList.remove("show"); }, 2000);
 }
 
-const defaultQuery = "SELECT name AS Name, on_demand_price AS \"On-Demand Price\", vcpu AS vCPUs, memory AS \"Memory [GB]\", round(singlecore_spec_int_base/on_demand_price, 2) as \"SPEC/$\"\nFROM aws\nWHERE \"SPEC/$\" > 0\nORDER BY \"SPEC/$\" DESC";
+const defaultQuery = "SELECT *\nFROM aws";
 
 // Text Editor with Syntax Highlighting
 let editor;
@@ -135,10 +135,10 @@ await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
 const arrayBuffer = new Uint8Array(await (await fetch(dbfile)).arrayBuffer());
 
 // Register the file in DuckDB's virtual filesystem
-await db.registerFileBuffer("benchmark.duckdb", new Uint8Array(arrayBuffer));
+await db.registerFileBuffer("cloudspecs.duckdb", new Uint8Array(arrayBuffer));
 const conn = await db.connect();
-await conn.send("ATTACH 'benchmark.duckdb' AS bench;");
-await conn.send("USE bench;");
+await conn.send("ATTACH 'cloudspecs.duckdb' AS specs;");
+await conn.send("USE specs;");
 
 async function createTable() {
     let query = editor.getValue();
@@ -147,7 +147,7 @@ async function createTable() {
             columns: response.schema.fields.map(field => field.name),
             rows: // Bug fix explained at: https://github.com/GoogleChromeLabs/jsbi/issues/30
                 JSON.parse(JSON.stringify(response.toArray(), (key, value) =>
-                    typeof value === 'bigint' ? value.toString() : value // return everything else unchanged
+                    typeof value === 'bigint' ? parseInt(value.toString()) : value // return everything else unchanged
                 ))
         }
     },
@@ -201,7 +201,7 @@ async function createTable() {
                 {
                     text: 'DuckDB [Whole Database]',
                     action: function (e, dt, node, config) {
-                        window.location.href = 'https://github.com/TUM-DIS/EC2Bench/blob/main/static/benchmark.duckdb'; // Target URL
+                        window.location.href = 'https://github.com/TUM-DIS/EC2Bench/blob/main/static/cloudspecs.duckdb'; // Target URL
                     },
                     className: 'btn btn-primary'  // Bootstrap styling (optional)
                 },

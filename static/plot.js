@@ -62,9 +62,7 @@ library(plotly)
 library(ggplot2)
 theme_set(theme_bw(15))
 
-df[['family']] <- sapply(strsplit(df[['Name']], '\\\\.'), function(x) x[1])
-p <- ggplot(df, aes(x = .data[['SPEC..']], y = On.Demand.Price, colour = family)) +
-  expand_limits(y = 0, x = 0) +
+p <- ggplot(df, aes(x = release_date, y = vcpu_count, colour = instance_prefix)) +
   geom_point()
 
 plotly_json(p, pretty = FALSE)`)
