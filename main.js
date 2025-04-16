@@ -1,5 +1,3 @@
-import './style.css';
-
 import * as duckdb from '@duckdb/duckdb-wasm';
 import duckdb_wasm from '@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url';
 import mvp_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url';
@@ -178,6 +176,7 @@ async function createTable() {
             data: result.rows,
             columns: columns,
             ordering: false,
+            scrollX: '100%',
             dom: '<"top-toolbar d-flex justify-content-between align-items-center"lBf>rtip',
             buttons: [
                 {
