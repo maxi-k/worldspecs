@@ -6,13 +6,14 @@ let webR;
 let rContext;
 
 const loadRPackages = async () => {
-  await webR.installPackages(['ggplot2', 'svglite'], true);
+  await webR.installPackages(['ggplot2', 'svglite'], { quiet: true, mount: true });
 }
 
 const log = async(msg) => {
-    let log = document.getElementById(rContext.logid);
-    log.replaceChildren();
-    log.append(msg);
+  if (!rContext || !('logid' in rContext)) { return;  }
+  let log = document.getElementById(rContext.logid);
+  log.replaceChildren();
+  log.append(msg);
 }
 
 export const initializeR = async (logid) => {
@@ -76,6 +77,7 @@ export const onDataUpdate = async (table) => {
 export const provideScreenWidth = async(elemid) => {
   try {
     let w = document.getElementById(elemid).clientWidth;
+    w = w == 0  ? window.innerWidth - 20 : w;
     let h = window.innerHeight/2;
     await webR.objs.globalEnv.bind('output.width.inch', w/96);
     await webR.objs.globalEnv.bind('output.height.inch', h/96);

@@ -144,79 +144,68 @@ async function createTable() {
         return {
             columns: response.schema.fields.map(field => field.name),
             rows: // Bug fix explained at: https://github.com/GoogleChromeLabs/jsbi/issues/30
-                JSON.parse(JSON.stringify(response.toArray(), (key, value) =>
-                    typeof value === 'bigint' ? parseInt(value.toString()) : value // return everything else unchanged
-                ))
+            JSON.parse(JSON.stringify(response.toArray(), (key, value) =>
+                typeof value === 'bigint' ? parseInt(value.toString()) : value // return everything else unchanged
+            ))
         }
-    },
-        error => {
-            return { error: error.toString()?.split("\n") }
-        });
+    }, error => {
+        return { error: error.toString()?.split("\n") }
+    });
 
 
     if ("error" in result) {
         $("#error-msg").text(result.error);
         return $('#ec2-instances').DataTable({});
     }
-    else {
-        let columns = result.columns.map(key => ({ title: key, data: row => row[key] }));
+    let columns = result.columns.map(key => ({ title: key, data: row => row[key] }));
 
-        // Add column headers to <thead>
-        const theadRow = $('#ec2-instances thead tr');
-        result.columns.forEach(key => {
-            theadRow.append(`<th>${key}</th>`);
-        });
+    // Add column headers to <thead>
+    const theadRow = $('#ec2-instances thead tr');
+    result.columns.forEach(key => {
+        theadRow.append(`<th>${key}</th>`);
+    });
 
-        // Set table in R context
-        if (rmodule) {
-            rmodule.onDataUpdate(result);
-        }
-
-        return $('#ec2-instances').DataTable({
-            data: result.rows,
-            columns: columns,
-            ordering: false,
-            scrollX: '100%',
-            dom: '<"top-toolbar d-flex justify-content-between align-items-center"lBf>rtip',
-            buttons: [
-                {
-                    extend: 'csv',
-                    filename: 'ec2_instances_data',
-                    text: 'CSV'
-                }
-                ,
-                {
-                    extend: 'excel',
-                    filename: 'ec2_instances_data',
-                    text: 'Excel'
-                },
-                // {
-                //     text: 'GGPlot',
-                //     className: 'btn btn-primary',
-                //     action: function (e, dt, node, config) {
-                //         $('#r-eval').toggle();
-                //     }
-                // },
-                {
-                    text: 'DuckDB [Whole Database]',
-                    action: function (e, dt, node, config) {
-                        window.location.href = 'https://github.com/TUM-DIS/EC2Bench/blob/main/static/cloudspecs.duckdb'; // Target URL
-                    },
-                    className: 'btn btn-primary'  // Bootstrap styling (optional)
-                },
-                {
-                    text: 'Share',
-                    action: function () {
-                        const encodedQuery = base64Encode(query);
-                        const shareableLink = setQueryParam("query", encodedQuery);
-                        copyToClipboard(shareableLink);
-                    }
-                }],
-            pageLength: 100, // default row count
-            lengthMenu: [10, 25, 50, 100, 200]
-        });
+    // Set table in R context
+    if (rmodule) {
+        rmodule.onDataUpdate(result);
     }
 
+    return $('#ec2-instances').DataTable({
+        data: result.rows,
+        columns: columns,
+        ordering: false,
+        scrollX: '100%',
+        dom: '<"top-toolbar d-flex justify-content-between align-items-center"lBf>rtip',
+        buttons: [
+            {
+                extend: 'csv',
+                filename: 'ec2_instances_data',
+                text: 'CSV'
+            }
+            ,
+            {
+                extend: 'excel',
+                filename: 'ec2_instances_data',
+                text: 'Excel'
+            },
+            {
+                text: 'DuckDB [Whole Database]',
+                action: function (e, dt, node, config) {
+                    window.location.href = 'https://github.com/TUM-DIS/EC2Bench/blob/main/static/cloudspecs.duckdb'; // Target URL
+                },
+                className: 'btn btn-primary'  // Bootstrap styling (optional)
+            },
+            {
+                text: 'Share',
+                action: function () {
+                    const encodedQuery = base64Encode(query);
+                    const shareableLink = setQueryParam("query", encodedQuery);
+                    copyToClipboard(shareableLink);
+                }
+            }],
+        pageLength: 100, // default row count
+        lengthMenu: [10, 25, 50, 100, 200]
+    });
 }
 
 // Render initial table with our sample query
