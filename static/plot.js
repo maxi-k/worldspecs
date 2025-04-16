@@ -62,7 +62,7 @@ library(plotly)
 library(ggplot2)
 theme_set(theme_bw(15))
 
-p <- ggplot(df, aes(x = release_date, y = vcpu_count, colour = instance_prefix)) +
+p <- ggplot(df, aes(x = release_year, y = vcpu_count, colour = instance_prefix)) +
   geom_point()
 
 plotly_json(p, pretty = FALSE)`)
