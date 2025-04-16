@@ -20,11 +20,7 @@ export const initializeR = async (logid) => {
   await webR.init();
   rContext = {logid: logid};
   await loadRPackages();
-  await webR.evalRVoid(`
-library(svglite)
-library(ggplot2)
-
-`);
+  await webR.evalRVoid("library(svglite); library(ggplot2)");
   log("R is ready to go!");
 }
 export const convertBlobToBase64 = blob => new Promise((resolve, reject) => {
@@ -40,13 +36,13 @@ export const convertBlobToBase64 = blob => new Promise((resolve, reject) => {
 const recreatePlot = async () => {
   let {editor, graphic, graphicid} = rContext;
   const code = editor.getValue();
-  console.log(code);
+  // console.log(code);
   log("Running code...");
   try {
     const svgstr = await webR.evalRString(code);
     // if is svg -> render svg
     // if is plotly -> render plotly
-    console.log(svgstr);
+    // console.log(svgstr);
     // draw plot
     // console.log(JSON.stringify(plotlyData));
     try {
@@ -83,7 +79,7 @@ export const provideScreenWidth = async(elemid) => {
     let h = window.innerHeight/2;
     await webR.objs.globalEnv.bind('output.width.inch', w/96);
     await webR.objs.globalEnv.bind('output.height.inch', h/96);
-    console.log('bound output size to R:', w, h);
+    // console.log('bound output size to R:', w, h);
   } catch (e) {
     log("Error updating screen size: " + e);
     console.log("failed to re-bind or re-draw data", e);
@@ -103,8 +99,7 @@ output <- ggplot(df, aes(x = release_year, y = vcpu_count, colour = instance_pre
     theme(legend.position = 'none')
 
 ## output to the html page
-plot(output); dev.off(); to_svg()
-`;
+plot(output); dev.off(); to_svg()`;
 
 export const makeRRepl = async (editor, graphic, graphicid, btn, initialContent = null) => {
   const initialPlot = initialContent || defaultPlot;
