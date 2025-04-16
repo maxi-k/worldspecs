@@ -6,7 +6,7 @@ let webR;
 let rContext;
 
 const loadRPackages = async () => {
-  await webR.installPackages(['jsonlite', 'ggplot2', 'plotly'], true);
+  await webR.installPackages(['ggplot2', 'svglite'], true);
 }
 
 const log = async(msg) => {
@@ -20,24 +20,44 @@ export const initializeR = async (logid) => {
   await webR.init();
   rContext = {logid: logid};
   await loadRPackages();
+  await webR.evalRVoid(`
+library(svglite)
+library(ggplot2)
+
+`);
   log("R is ready to go!");
 }
+export const convertBlobToBase64 = blob => new Promise((resolve, reject) => {
+    const reader = new FileReader;
+    reader.onerror = reject;
+    reader.onload = () => {
+        resolve(reader.result);
+    };
+    reader.readAsDataURL(blob);
+});
 
+// screen.availHeight**2 + screen.availWidth
 const recreatePlot = async () => {
   let {editor, graphic, graphicid} = rContext;
   const code = editor.getValue();
+  console.log(code);
   log("Running code...");
   try {
-    const plotlyData = await webR.evalRString(code);
+    const svgstr = await webR.evalRString(code);
+    // if is svg -> render svg
+    // if is plotly -> render plotly
+    console.log(svgstr);
     // draw plot
     // console.log(JSON.stringify(plotlyData));
     try {
-      graphic.replaceChildren();
-      Plotly.newPlot(graphicid, JSON.parse(plotlyData), {});
+      // graphic.replaceChildren();
+      document.getElementById(graphicid).innerHTML = svgstr;
+
+      // Plotly.newPlot(graphicid, JSON.parse(plotlyData), {});
       log("Code ran successfully!");
     } catch (e) {
       console.log(e);
-      log("Error drawing plot: " + JSON.stringify(plotlyData));
+      log("Error drawing plot: " + JSON.stringify(e));
     }
   } catch (e) {
     log("Error running code: " + e);
@@ -56,16 +76,42 @@ export const onDataUpdate = async (table) => {
   }
 }
 
-export const makeRRepl = (editor, graphic, graphicid, btn) => {
-  editor.getDoc().setValue(`### the current table is bound to the variable 'df'
-library(plotly)
-library(ggplot2)
+// provide screen size to R environment
+export const provideScreenWidth = async(elemid) => {
+  try {
+    let w = document.getElementById(elemid).clientWidth;
+    let h = window.innerHeight/2;
+    await webR.objs.globalEnv.bind('output.width.inch', w/96);
+    await webR.objs.globalEnv.bind('output.height.inch', h/96);
+    console.log('bound output size to R:', w, h);
+  } catch (e) {
+    log("Error updating screen size: " + e);
+    console.log("failed to re-bind or re-draw data", e);
+  }
+}
+
+export const getCurrentEditorContent = () => {
+  return rContext.editor.getValue();
+}
+
+export const defaultPlot = `to_svg <- svgstring(width = output.width.inch, height = output.height.inch)
 theme_set(theme_bw(15))
 
-p <- ggplot(df, aes(x = release_year, y = vcpu_count, colour = instance_prefix)) +
-  geom_point()
+### the current table is bound to the variable 'df'
+output <- ggplot(df, aes(x = release_year, y = vcpu_count, colour = instance_prefix)) +
+    geom_point() +
+    theme(legend.position = 'none')
 
-plotly_json(p, pretty = FALSE)`)
+## output to the html page
+plot(output); dev.off(); to_svg()
+`;
+
+export const makeRRepl = async (editor, graphic, graphicid, btn, initialContent = null) => {
+  const initialPlot = initialContent || defaultPlot;
+  editor.getDoc().setValue(initialPlot);
   rContext = {...rContext, editor, graphic, graphicid, btn};
   btn.addEventListener('click', recreatePlot);
+  // screen resize listener
+  await provideScreenWidth(graphicid);
+  window.addEventListener('resize', () => provideScreenWidth(graphicid));
 }
