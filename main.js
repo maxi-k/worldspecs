@@ -1,15 +1,6 @@
-import * as duckdb from '@duckdb/duckdb-wasm';
-import duckdb_wasm from '@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url';
-import mvp_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url';
-import duckdb_wasm_next from '@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url';
-import eh_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url';
 
-// For rendering EC2 Table
-import 'datatables.net-responsive-dt';
-
-// Load static DuckDB database from GitHub
-import dbfile from './static/cloudspecs.duckdb?url';
-
+import DB from './components/db.js'
+import ResultTable from './components/ResultTable.js'
 
 // Helpers for encoding query in URL
 function base64Encode(str) {
@@ -108,39 +99,12 @@ document.addEventListener("DOMContentLoaded", async function () {
 });
 
 
-const MANUAL_BUNDLES = {
-    mvp: {
-        mainModule: duckdb_wasm,
-        mainWorker: mvp_worker,
-    },
-    eh: {
-        mainModule: duckdb_wasm_next,
-        mainWorker: eh_worker
-    },
-};
-
-// Select a bundle based on browser checks
-const bundle = await duckdb.selectBundle(MANUAL_BUNDLES);
-
-// Instantiate the asynchronus version of DuckDB-wasm
-const worker = new Worker(bundle.mainWorker);
-const logger = new duckdb.ConsoleLogger();
-const db = new duckdb.AsyncDuckDB(logger, worker);
-await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-
-// Fetch the database file
-//TODO: Could fail for large objects
-const arrayBuffer = new Uint8Array(await (await fetch(dbfile)).arrayBuffer());
-
-// Register the file in DuckDB's virtual filesystem
-await db.registerFileBuffer("cloudspecs.duckdb", new Uint8Array(arrayBuffer));
-const conn = await db.connect();
-await conn.send("ATTACH 'cloudspecs.duckdb' AS specs;");
-await conn.send("USE specs;");
+const db = await DB.create();
+const resultTable = new ResultTable('#ec2-instances');
 
 async function createTable() {
     let query = editor.getValue();
-    const result = await conn.query(query).then(response => {
+    const result = await db.query(query).then(response => {
         return {
             columns: response.schema.fields.map(field => field.name),
             rows: // Bug fix explained at: https://github.com/GoogleChromeLabs/jsbi/issues/30
@@ -152,70 +116,22 @@ async function createTable() {
         return { error: error.toString()?.split("\n") }
     });
 
-
     if ("error" in result) {
         $("#error-msg").text(result.error);
-        return $('#ec2-instances').DataTable({});
+        console.log("result error");
+        return resultTable.render([], [], query);
     }
-    let columns = result.columns.map(key => ({ title: key, data: row => row[key] }));
-
-    // Add column headers to <thead>
-    const theadRow = $('#ec2-instances thead tr');
-    result.columns.forEach(key => {
-        theadRow.append(`<th>${key}</th>`);
-    });
 
     // Set table in R context
     if (rmodule) {
         rmodule.onDataUpdate(result);
     }
 
-    return $('#ec2-instances').DataTable({
-        data: result.rows,
-        columns: columns,
-        ordering: false,
-        scrollX: '100%',
-        dom: '<"top-toolbar d-flex justify-content-between align-items-center"lBf>rtip',
-        buttons: [
-            {
-                extend: 'csv',
-                filename: 'ec2_instances_data',
-                text: 'CSV'
-            }
-            ,
-            {
-                extend: 'excel',
-                filename: 'ec2_instances_data',
-                text: 'Excel'
-            },
-            {
-                text: 'DuckDB [Whole Database]',
-                action: function (e, dt, node, config) {
-                    window.location.href = 'https://github.com/TUM-DIS/EC2Bench/blob/main/static/cloudspecs.duckdb'; // Target URL
-                },
-                className: 'btn btn-primary'  // Bootstrap styling (optional)
-            },
-            {
-                text: 'Share',
-                action: function () {
-                    const encodedQuery = base64Encode(query);
-                    const shareableLink = setQueryParam("query", encodedQuery);
-                    copyToClipboard(shareableLink);
-                }
-            }],
-        pageLength: 100, // default row count
-        lengthMenu: [10, 25, 50, 100, 200]
-    });
+    return resultTable.render(result.columns, result.rows, query);
 }
 
-// Render initial table with our sample query
-let dataTables = await createTable();
-
 const recreateTable = async () => {
-    dataTables.clear();
-    dataTables.destroy();
-    $('#ec2-instances thead').empty().append("<tr></tr>");
-    dataTables = await createTable();
+    await createTable();
 }
 
 $(document).ready(async function () {
