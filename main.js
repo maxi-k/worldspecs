@@ -174,7 +174,6 @@ async function createTable() {
         data: result.rows,
         columns: columns,
         ordering: false,
-        scrollX: '100%',
         dom: '<"top-toolbar d-flex justify-content-between align-items-center"lBf>rtip',
         buttons: [
             {
