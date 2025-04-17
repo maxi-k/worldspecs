@@ -3,16 +3,6 @@ import 'datatables.net-responsive-dt';
 
 /// XXX replace cdn with js modules and bundle using vite
 
-// Helpers for encoding query in URL
-function base64Encode(str) {
-    return btoa(encodeURIComponent(str)); // Encode to Base64
-}
-
-function setQueryParam(name, value) {
-    const params = new URLSearchParams();
-    params.set(name, value);
-    return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-}
 
 function showToast(message) {
     const toast = $("#toast").text(message).addClass("show");
@@ -66,11 +56,11 @@ export default class ResultTable {
             {
                 text: 'Share',
                 action: function () {
-                    const encodedQuery = base64Encode(query);
-                    const shareableLink = setQueryParam("query", encodedQuery);
-                    copyToClipboard(shareableLink);
+                    // Copy current URL (state is serialized in URL)
+                    copyToClipboard(window.location.href);
                 }
-            }],
+            }
+        ],
         pageLength: 100, // default row count
         lengthMenu: [10, 25, 50, 100, 200, 1000]
     });

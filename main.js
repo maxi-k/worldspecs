@@ -1,122 +1,98 @@
-import DB from './components/db.js'
-import ResultTable from './components/ResultTable.js'
+// main.js
+// Orchestrates components: state manager, code editors, database querying, and table rendering
+import state from './components/state.js';
+import CodeEditor from './components/CodeEditor.js';
+import DB from './components/db.js';
+import ResultTable from './components/ResultTable.js';
 
-// Helpers for encoding query in URL
-function base64Encode(str) {
-    return btoa(encodeURIComponent(str)); // Encode to Base64
-}
+document.addEventListener('DOMContentLoaded', async () => {
+  // SQL Code Editor
+  const sqlEditor = new CodeEditor('#sql-editor', {
+    mode: 'text/x-sql',
+    stateKey: 'sqlQuery',
+    extraKeys: {
+      'Ctrl-Enter': () => {
+        document.getElementById('error-msg').textContent = '';
+        runQuery();
+      }
+    }
+  });
 
-function base64Decode(str) {
+  // Initialize database and result table
+  const db = await DB.create();
+  const resultTable = new ResultTable('#ec2-instances');
+
+  // Handle state updates for query results
+  state.subscribe((newState, updates) => {
+    if (Object.prototype.hasOwnProperty.call(updates, 'result')) {
+      const { columns, rows, query } = newState.result;
+      resultTable.render(columns, rows, query);
+      if (window.rmodule) {
+        window.rmodule.onDataUpdate({ columns, rows });
+      }
+    }
+  });
+
+  // Run query based on current state.sqlQuery
+  async function runQuery() {
+    const query = state.getState().sqlQuery;
+    let result;
     try {
-        return decodeURIComponent(atob(str)); // Decode from Base64
-    } catch (e) {
-        return ""; // Handle invalid Base64
+      result = await db.query(query);
+    } catch (err) {
+      result = { error: [err.toString()] };
     }
-}
+    if (result.error) {
+      document.getElementById('error-msg').textContent = result.error.join('\n');
+      state.setState({ result: { columns: [], rows: [], query } });
+    } else {
+      document.getElementById('error-msg').textContent = '';
+      state.setState({ result: { columns: result.columns, rows: result.rows, query } });
+    }
+  }
 
-function getQueryParam(name) {
-    const params = new URLSearchParams(window.location.search);
-    return params.get(name);
-}
+  // Load table button
+  document.getElementById('load-table').addEventListener('click', async (e) => {
+    e.preventDefault();
+    document.getElementById('error-msg').textContent = '';
+    await runQuery();
+  });
 
+  // Fallback Ctrl+Enter
+  document.addEventListener('keydown', (event) => {
+    if (event.ctrlKey && event.key === 'Enter') {
+      document.getElementById('error-msg').textContent = '';
+      runQuery();
+    }
+  });
 
-const defaultQuery = "SELECT *\nFROM aws";
+  // Prepare R evaluation area
+  const reval = document.getElementById('r-eval');
+  reval.innerHTML += '<textarea id="r-editor" class="form-control" rows="10" placeholder="Enter R code here"></textarea>';
+  reval.innerHTML += '<button id="execute-r">Plot [Ctrl+Enter]</button>';
+  reval.innerHTML += '<div id="r-status" class="output">Loading R...</div>';
+  reval.innerHTML += '<div id="r-output" class="output"></div>';
 
-// Text Editor with Syntax Highlighting
-let editor;
-let rmodule;
-document.addEventListener("DOMContentLoaded", async function () {
-    const base64Query = getQueryParam("query");
-    const initialContent = base64Query ? base64Decode(base64Query) : defaultQuery;
-    editor = CodeMirror.fromTextArea(document.getElementById("sql-editor"), {
-        mode: "text/x-sql", // SQL mode
-        lineNumbers: true, // Show line numbers
-        matchBrackets: true, // Highlight matching brackets
-        autoCloseBrackets: true // Auto-close brackets
+  // Load and initialize R module
+  try {
+    const rmodule = await import('./static/plot.js');
+    window.rmodule = rmodule;
+    await rmodule.initializeR('r-status');
+    const rEditor = new CodeEditor('#r-editor', {
+      mode: 'text/x-rsrc',
+      stateKey: 'rCode',
+      extraKeys: {
+        'Ctrl-Enter': () => document.getElementById('execute-r').click()
+      }
     });
-    editor.setValue(initialContent);
+    const submitBtn = document.getElementById('execute-r');
+    const out = document.getElementById('r-output');
+    await rmodule.makeRRepl(rEditor.editor, out, 'r-output', submitBtn);
+  } catch (error) {
+    console.error('Failed to load R module', error);
+    alert('Failed to load R module');
+  }
 
-    // await import other js file lazily
-    try {
-        // prepare output area
-        let reval = document.getElementById("r-eval");
-        // append editor and graphic output area
-        reval.innerHTML += '<textarea id="r-editor" class="form-control" rows="10" placeholder="Enter R code here"></textarea>';
-        reval.innerHTML += '<button id="execute-r">Plot [Ctrl+Enter]</button>';
-        reval.innerHTML += '<div id="r-status" class="output">Loading R...</div>';
-        reval.innerHTML += '<div id="r-output" class="output"></div>';
-        // load module
-        rmodule = await import('./static/plot.js')
-
-        await rmodule.initializeR('r-status')
-        console.log("R module loaded successfully");
-
-
-        let editor = document.getElementById("r-editor");
-        let out = document.getElementById("r-output");
-        let submit = document.getElementById("execute-r");
-        // code mirror editor
-        let r_editor = CodeMirror.fromTextArea(editor, {
-            mode: "text/x-rsrc", // R mode
-            lineNumbers: true, // Show line numbers
-            matchBrackets: true, // Highlight matching brackets
-            autoCloseBrackets: true, // Auto-close brackets
-            extraKeys: {
-                "Ctrl-Enter": function (cm) {
-                    submit.click();
-                }
-            }
-        });
-
-        // initialize R repl
-        await rmodule.makeRRepl(r_editor, out, 'r-output', submit);
-        await recreateTable();
-        submit.click();
-    } catch (error) {
-        console.error("Failed to load R module", error);
-        alert("Failed to load R module");
-    }
-});
-
-
-const db = await DB.create();
-const resultTable = new ResultTable('#ec2-instances');
-
-async function createTable() {
-    let sql = editor.getValue();
-    const result = await db.query(sql);
-
-    if ("error" in result) {
-        $("#error-msg").text(result.error);
-        console.log("result error");
-        return resultTable.render([], [], sql);
-    }
-
-    // Set table in R context
-    if (rmodule) {
-        rmodule.onDataUpdate(result);
-    }
-
-    return resultTable.render(result.columns, result.rows, sql);
-}
-
-const recreateTable = async () => {
-    await createTable();
-}
-
-$(document).ready(async function () {
-    $("#load-table").on("click", async function (e) {
-        e.preventDefault();
-        $("#error-msg").text("");
-        recreateTable();
-    });
-
-    $("#tabs").tabs();
-
-    document.addEventListener('keydown', async function (event) {
-        if (event.ctrlKey && event.key == "Enter") {
-            $("#error-msg").text("");
-            recreateTable();
-        }
-    });
+  // Initial query to populate table based on URL/state
+  runQuery();
 });
