@@ -174,7 +174,7 @@ async function createTable() {
         data: result.rows,
         columns: columns,
         ordering: false,
-        dom: '<"top-toolbar d-flex justify-content-between align-items-center"lBf>rtip',
+        dom: '<"top-toolbar d-flex justify-content-between align-items-center"iBf>rt<"bottom-toolbar d-flex justify-content-between align-items-center"lp><"clear">',
         buttons: [
             {
                 extend: 'csv',
@@ -203,7 +203,7 @@ async function createTable() {
                 }
             }],
         pageLength: 100, // default row count
-        lengthMenu: [10, 25, 50, 100, 200]
+        lengthMenu: [25, 50, 100, 200, 1000]
     });
 }
 
