@@ -24,25 +24,21 @@ const defaultState = {
   rCode: ''
 };
 
-// Initialize state from URL or defaults
-let initialState = { ...defaultState };
-const encoded = getQueryParam(STATE_PARAM);
-if (encoded) {
-  try {
-    const parsed = JSON.parse(base64Decode(encoded));
-    console.log('parsed url state', parsed);
-    if (parsed.keys().size == URL_ENCODED_KEYS.size
-        && URL_ENCODED_KEYS.every(key => parsed.hasOwnProperty(key))) {
-      initialState = { ...initialState,  ...parsed };
-    } else {
-      console.log("not setting invalid url state ", parsed);
+let state = (() => {
+  const encoded = getQueryParam(STATE_PARAM);
+  if (!!encoded) {
+    try {
+      const parsed = JSON.parse(base64Decode(encoded));
+      if (Object.keys(parsed).length == URL_ENCODED_KEYS.length
+          && URL_ENCODED_KEYS.every(key => parsed.hasOwnProperty(key))) {
+        return { ...defaultState, ...parsed };
+      }
+    } catch (e) {
+      console.error('Error parsing URL state', e);
     }
-  } catch {
-    // ignore malformed state
   }
-}
-
-let state = { ...initialState };
+  return { ...defaultState };
+})();
 let subscribers = [];
 
 // Subscribe to state changes. Callback receives (newState, updates).  Returns an unsubscribe function.
