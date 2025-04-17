@@ -179,16 +179,16 @@ async function createTable() {
             {
                 extend: 'csv',
                 filename: 'ec2_instances_data',
-                text: 'CSV'
+                text: 'Export Result [CSV]'
             }
             ,
             {
                 extend: 'excel',
                 filename: 'ec2_instances_data',
-                text: 'Excel'
+                text: 'Export Result [XLS]'
             },
             {
-                text: 'DuckDB [Whole Database]',
+                text: 'Export Database [DuckDB]',
                 action: function (e, dt, node, config) {
                     window.location.href = 'https://github.com/TUM-DIS/EC2Bench/blob/main/static/cloudspecs.duckdb'; // Target URL
                 },
