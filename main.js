@@ -93,6 +93,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     alert('Failed to load R module');
   }
 
+  // GGPLot / SQL tab view
+  $("#tabs").tabs();
+
   // Initial query to populate table based on URL/state
   runQuery();
 });
