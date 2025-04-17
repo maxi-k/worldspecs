@@ -33,7 +33,7 @@ export default class CodeEditor {
     });
     // Reflect external state updates
     state.subscribe((newState, updates) => {
-      if (Object.prototype.hasOwnProperty.call(updates, stateKey)) {
+      if (stateKey in updates) {
         const newVal = newState[stateKey];
         if (this.editor.getValue() !== newVal) {
           this.editor.setValue(newVal);

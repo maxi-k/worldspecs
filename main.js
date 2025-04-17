@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Handle state updates for query results
   state.subscribe((newState, updates) => {
-    if (Object.prototype.hasOwnProperty.call(updates, 'result')) {
+    if ('result' in updates) {
       const { columns, rows, query } = newState.result;
       resultTable.render(columns, rows, query);
       if (window.rmodule) {
