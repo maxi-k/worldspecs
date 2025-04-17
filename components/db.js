@@ -54,6 +54,17 @@ export default class DB {
   }
 
   async query(q) {
-    return await this.#conn.query(q);
+    try {
+      const response = await this.#conn.query(q);
+      return {
+        columns: response.schema.fields.map(field => field.name),
+        rows: // Bug fix explained at: https://github.com/GoogleChromeLabs/jsbi/issues/30
+        JSON.parse(JSON.stringify(response.toArray(), (key, value) =>
+          typeof value === 'bigint' ? parseInt(value.toString()) : value // return everything else unchanged
+        ))
+      }
+    } catch (error) {
+      return { error: error.toString()?.split("\n") }
+    }
   }
 };

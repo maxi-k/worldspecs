@@ -1,4 +1,3 @@
-
 import DB from './components/db.js'
 import ResultTable from './components/ResultTable.js'
 
@@ -20,25 +19,6 @@ function getQueryParam(name) {
     return params.get(name);
 }
 
-function setQueryParam(name, value) {
-    const params = new URLSearchParams();
-    params.set(name, value);
-    return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-}
-
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showToast("Link copied to clipboard!");
-    }).catch(err => console.error("Failed to copy: ", err));
-}
-
-function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.add("show");
-
-    setTimeout(() => { toast.classList.remove("show"); }, 2000);
-}
 
 const defaultQuery = "SELECT *\nFROM aws";
 
@@ -103,23 +83,13 @@ const db = await DB.create();
 const resultTable = new ResultTable('#ec2-instances');
 
 async function createTable() {
-    let query = editor.getValue();
-    const result = await db.query(query).then(response => {
-        return {
-            columns: response.schema.fields.map(field => field.name),
-            rows: // Bug fix explained at: https://github.com/GoogleChromeLabs/jsbi/issues/30
-            JSON.parse(JSON.stringify(response.toArray(), (key, value) =>
-                typeof value === 'bigint' ? parseInt(value.toString()) : value // return everything else unchanged
-            ))
-        }
-    }, error => {
-        return { error: error.toString()?.split("\n") }
-    });
+    let sql = editor.getValue();
+    const result = await db.query(sql);
 
     if ("error" in result) {
         $("#error-msg").text(result.error);
         console.log("result error");
-        return resultTable.render([], [], query);
+        return resultTable.render([], [], sql);
     }
 
     // Set table in R context
@@ -127,7 +97,7 @@ async function createTable() {
         rmodule.onDataUpdate(result);
     }
 
-    return resultTable.render(result.columns, result.rows, query);
+    return resultTable.render(result.columns, result.rows, sql);
 }
 
 const recreateTable = async () => {
