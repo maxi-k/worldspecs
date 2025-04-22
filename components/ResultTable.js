@@ -50,7 +50,7 @@ export default class ResultTable {
             {
                 text: 'Export Database [DuckDB]',
                 action: function (e, dt, node, config) {
-                    window.location.href = 'https://github.com/TUM-DIS/EC2Bench/blob/main/static/cloudspecs.duckdb'; // Target URL
+                    window.location.href = 'https://github.com/TUM-DIS/cloudspecs/blob/main/static/cloudspecs.duckdb'; // Target URL
                 },
                 className: 'btn btn-primary'  // Bootstrap styling (optional)
             },
