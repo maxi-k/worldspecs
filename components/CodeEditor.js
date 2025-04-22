@@ -33,12 +33,10 @@ export default class CodeEditor {
     });
     // Reflect external state updates
     state.subscribe((newState, updates) => {
-      if (stateKey in updates) {
-        const newVal = newState[stateKey];
-        if (this.editor.getValue() !== newVal) {
-          this.editor.setValue(newVal);
-        }
+      const newVal = newState[stateKey];
+      if (this.editor.getValue() !== newVal) {
+        this.editor.setValue(newVal);
       }
-    });
+    }, [stateKey]);
   }
 }

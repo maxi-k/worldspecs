@@ -40,12 +40,15 @@ let state = (() => {
   return { ...defaultState };
 })();
 let subscribers = [];
+let subscriptionPaths = {}
 
 // Subscribe to state changes. Callback receives (newState, updates).  Returns an unsubscribe function.
-const subscribe = (callback) => {
+const subscribe = (callback, paths = []) => {
   subscribers.push(callback);
+  subscriptionPaths[callback] = new Set(paths);
   return () => {
     subscribers = subscribers.filter(fn => fn !== callback);
+    delete subscriptionPaths[callback];
   };
 }
 
@@ -56,13 +59,21 @@ const getState = () => ({ ...state });
 const setState = (updates) => {
   state = { ...state, ...updates };
   const snapshot = getState();
-  subscribers.forEach(cb => cb(snapshot, updates));
-  // update URL without reloading
-  // only encode specific keys
+  subscribers.forEach(cb => {
+    if (Object.keys(updates).some(key => // paths empty or includes key
+      subscriptionPaths[cb].size == 0 || subscriptionPaths[cb].has(key))
+    ) {
+      cb(snapshot, updates);
+    }
+  });
+}
+
+const saveState = () => {
+  // update URL without reloading only encode specific keys
   const newEncoded = base64Encode(
     JSON.stringify(
       Object.fromEntries(
-        Object.entries(snapshot).filter(([key]) => URL_ENCODED_KEYS.includes(key))
+        Object.entries(state).filter(([key]) => URL_ENCODED_KEYS.includes(key))
       )
     )
   );
@@ -70,4 +81,4 @@ const setState = (updates) => {
   window.history.replaceState(null, '', newUrl);
 }
 
-export default { subscribe, getState, setState };
+export default { subscribe, getState, setState, saveState };

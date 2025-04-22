@@ -34,20 +34,34 @@
 
 <body>
   <div id="app">
-    <div id="tabs">
-      <ul class="tab-links">
-        <li><a href="#sql-tab">SQL</a></li>
-        <li><a href="#r-eval">GGPlot</a></li>
-      </ul>
-      <div id="sql-tab">
-        <textarea id="sql-editor">SELECT * FROM aws;</textarea>
-        <input type="submit" id="load-table" name="load-table" value="Execute [Ctrl+Enter]">
-        <div id="error-msg"></div>
-      </div>
-      <div id="r-eval"></div>
-    </div> <!-- end tabs -->
-    <table id="ec2-instances" class="display nowrap">
-    </table>
+    <header id="header"></header>
+    <!-- sql evaluation (editor + button) -->
+    <div id="sql-eval">
+      <textarea id="sql-editor">SELECT * FROM aws;</textarea>
+      <input type="submit" id="load-table" name="load-table" value="Execute [Ctrl+Enter]">
+      <div id="sql-status" class="error-msg"></div>
+    </div>
+    <!-- sql output (table) -->
+    <table id="sql-output" class="display nowrap"></table>
+    <!-- r evaluation (editor + button) -->
+    <div id="r-eval">
+      <textarea id="r-editor" class="form-control" rows="10">
+to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scale = 1)
+
+### the current table is bound to the variable 'df'
+output <- ggplot(df, aes(x = release_year, y = vcpu_count, colour = instance_prefix)) +
+    geom_point() +
+    theme(legend.position = 'none')
+
+## output to the html page
+plot(output); dev.off(); to_svg()
+      </textarea>
+      <button id="execute-r">Plot [Ctrl+Enter]</button>
+      <div id="r-status" class="error-msg"></div>
+    </div>
+    <!-- r output (visualization) -->
+    <div id="r-output"></div>
+    <!-- global toast -->
     <div id="toast" class="toast">Link copied to clipboard!</div>
   </div>
   <script type="module" src="/main.js"></script>

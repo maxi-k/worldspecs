@@ -29,7 +29,7 @@ thead {
   cursor: pointer;
 }
 
-#error-msg {
+.error-msg {
   color: red;
 }
 
@@ -117,11 +117,6 @@ thead {
 #r-status {
   padding: .5em 0;
   margin: .1em 0;
-}
-
-#r-status::before {
-  content: "R Status: ";
-  font-weight: bold;
 }
 
 #r-output {
