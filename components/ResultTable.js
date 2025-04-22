@@ -34,20 +34,21 @@ export default class ResultTable {
         columns: mappedCols,
         ordering: false,
         scrollX: true, // issue with too few columns
-        dom: '<"top-toolbar d-flex justify-content-between align-items-center"lBf>rtip',
+        // dom: '<"top-toolbar d-flex justify-content-between align-items-center"lBf>rtip',
+        dom: '<"top-toolbar d-flex justify-content-between align-items-center"iBf>rt<"bottom-toolbar d-flex justify-content-between align-items-center"lp><"clear">',
         buttons: [
             {
                 extend: 'csv',
                 filename: 'ec2_instances_data',
-                text: 'CSV'
+                text: 'Export Result [CSV]'
             },
             {
                 extend: 'excel',
                 filename: 'ec2_instances_data',
-                text: 'Excel'
+                text: 'Export Result [XLS]'
             },
             {
-                text: 'DuckDB [Whole Database]',
+                text: 'Export Database [DuckDB]',
                 action: function (e, dt, node, config) {
                     window.location.href = 'https://github.com/TUM-DIS/EC2Bench/blob/main/static/cloudspecs.duckdb'; // Target URL
                 },
