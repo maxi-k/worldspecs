@@ -1,8 +1,8 @@
 {
-  "name": "ec2bench",
+  "name": "cloudspecs",
   "private": true,
   "version": "0.0.1",
-  "homepage": "https://tum-dis.github.io/EC2Bench/",
+  "homepage": "https://tum-dis.github.io/cloudspecs/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
