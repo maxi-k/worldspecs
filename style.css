@@ -1,3 +1,8 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -8,6 +13,7 @@
 
 table {
   width: 100%;
+  min-width: 100%;
   min-width: 100%;
   margin-top: 10px;
   border-collapse: collapse;
@@ -20,15 +26,6 @@ thead {
   padding: 8px;
   text-align: right !important;
 }
-
-#load-table, #execute-r {
-  width: 100%;
-  margin-top: 10px;
-  padding: 10px 15px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
 .error-msg {
   color: red;
 }
@@ -108,10 +105,51 @@ thead {
   --dt-html-background: rgb(33, 37, 41);
 }
 
+#load-table, #execute-r {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 15px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#app {
+  display: grid;
+  grid-template-areas:
+    "header header"
+    "sql-eval r-eval"
+    "sql-output r-output";
+  grid-template-columns: 50% 50%;
+}
+
+#header {
+  grid-area: header;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1em;
+  background-color: #f8f8f8;
+  border-bottom: 1px solid #ccc;
+}
+
 #r-eval {
-  margin: 0 0 1em 0;
+  grid-area: r-eval;
   padding-bottom: 1em;
   border-bottom: 1px solid #ccc;
+}
+
+#sql-eval {
+  grid-area: sql-eval;
+  padding-bottom: 1em;
+  border-bottom: 1px solid #ccc;
+}
+
+#sql-output {
+  grid-area: sql-output;
+}
+
+#r-output {
+  grid-area: r-output;
 }
 
 #r-status {
