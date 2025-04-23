@@ -33,11 +33,18 @@
 </head>
 
 <body>
-  <div id="app">
-    <header id="header">Cloudspecs</header>
+  <div id="app" class="splitview">
+      <header id="header-lhs" class="header-segment">
+        <span class="title">Cloudspec</span>
+        <button class="view-changer" id="view-changer-leftview">&rarr;</button>
+      </header>
+      <header id="header-rhs" class="header-segment">
+        <button class="view-changer" id="view-changer-rightview">&larr;</button>
+        <button class="btn btn-primary">Share</button>
+      </header>
     <!-- sql evaluation (editor + button) -->
     <div id="sql-eval">
-      <textarea id="sql-editor">SELECT * FROM aws;</textarea>
+      <textarea id="sql-editor"></textarea>
       <input type="submit" id="load-table" name="load-table" value="Execute [Ctrl+Enter]">
       <div id="sql-status" class="error-msg"></div>
     </div>
@@ -45,17 +52,7 @@
     <table id="sql-output" class="display nowrap"></table>
     <!-- r evaluation (editor + button) -->
     <div id="r-eval">
-      <textarea id="r-editor" class="form-control" rows="10">
-to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scale = 1)
-
-### the current table is bound to the variable 'df'
-output <- ggplot(df, aes(x = release_year, y = vcpu_count, colour = instance_prefix)) +
-    geom_point() +
-    theme(legend.position = 'none')
-
-## output to the html page
-plot(output); dev.off(); to_svg()
-      </textarea>
+      <textarea id="r-editor" class="form-control" rows="10"></textarea>
       <button id="execute-r">Plot [Ctrl+Enter]</button>
       <div id="r-status" class="error-msg"></div>
     </div>

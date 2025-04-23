@@ -20,8 +20,24 @@ const STATE_PARAM = 'state';
 const URL_ENCODED_KEYS = ['sqlQuery', 'rCode'];
 // Default state values
 const defaultState = {
-  sqlQuery: `SELECT *\nFROM aws`,
-  rCode: ''
+  // default SQL query to run
+  sqlQuery: //
+`SELECT release_year, arch, max(core_count/price_hour_usd) cores_per_usd, arg_max(instance, core_count/price_hour_usd) best_instance
+FROM aws
+group by release_year, arch
+order by cores_per_usd desc
+`,
+  // initial R code to run
+  rCode: //
+`to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)
+theme_set(theme_bw())
+
+### the current table is bound to the variable 'df'
+output <- ggplot(df, aes(x = release_year, y = cores_per_usd, colour = arch)) +
+    geom_text(aes(label = best_instance))
+## output to the html page
+plot(output); dev.off(); to_svg()
+`
 };
 
 let state = (() => {
