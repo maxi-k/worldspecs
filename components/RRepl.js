@@ -18,6 +18,7 @@ export default class RRepl {
 
   async eval(rCode, table) {
     try {
+      await this.#onScreenUpdate();
       await this.#onDataUpdate(table);
       return await this.#recreatePlot(rCode);
     } catch (e) {
