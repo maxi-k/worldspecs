@@ -32,6 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
             elem.removeClass('rightview').addClass('splitview');
         }
     });
+
+    $('#reset-btn').click((e) => {
+        const newUrl = window.location.origin + window.location.pathname;
+        window.location = newUrl;
+    });
 });
 
 //////////////////////// SQL Editor  ///////////////////////
