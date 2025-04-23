@@ -11,6 +11,27 @@ document.addEventListener('DOMContentLoaded', () => {
   state.subscribe((newState, updates) => {
     state.saveState();
   }, ['result', 'rOutput']);
+
+  // buttons for changing view type
+
+
+    $('#view-changer-rightview').click((e) => {
+        let elem = $('#app');
+        if (elem.hasClass('splitview')) {
+            elem.removeClass('splitview').addClass('rightview');
+        } else {
+            elem.removeClass('leftview').addClass('splitview');
+        }
+    });
+
+    $('#view-changer-leftview').click((e) => {
+        let elem = $('#app');
+        if (elem.hasClass('splitview')) {
+            elem.removeClass('splitview').addClass('leftview');
+        } else {
+            elem.removeClass('rightview').addClass('splitview');
+        }
+    });
 });
 
 //////////////////////// SQL Editor  ///////////////////////

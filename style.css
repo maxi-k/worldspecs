@@ -116,21 +116,40 @@ thead {
 #app {
   display: grid;
   grid-template-areas:
-    "header header"
+    "header-lhs header-rhs"
     "sql-eval r-eval"
     "sql-output r-output";
+}
+
+#app.splitview {
   grid-template-columns: 50% 50%;
 }
 
-#header {
-  grid-area: header;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1em;
-  background-color: #f8f8f8;
-  border-bottom: 1px solid #ccc;
+#app.leftview {
+  grid-template-columns: 80% 20%;
 }
+
+#app.rightview {
+  grid-template-columns: 20% 80%;
+}
+
+.header-segment {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1em .5em 1em .5em;
+    background-color: #f8f8f8;
+    border-bottom: 1px solid #ccc;
+}
+
+.header-segment .title {
+    display: inline-block;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+#header-lhs {grid-area: header-lhs;}
+#header-rhs {grid-area: header-rhs;}
 
 #r-eval {
   grid-area: r-eval;
