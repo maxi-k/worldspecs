@@ -113,64 +113,6 @@ thead {
   cursor: pointer;
 }
 
-#app {
-  display: grid;
-  grid-template-areas:
-    "header-lhs header-rhs"
-    "sql-eval r-eval"
-    "sql-output r-output";
-}
-
-#app.splitview {
-  grid-template-columns: 50% 50%;
-}
-
-#app.leftview {
-  grid-template-columns: 80% 20%;
-}
-
-#app.rightview {
-  grid-template-columns: 20% 80%;
-}
-
-.header-segment {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1em .5em 1em .5em;
-    background-color: #f8f8f8;
-    border-bottom: 1px solid #ccc;
-}
-
-.header-segment .title {
-    display: inline-block;
-    font-size: 1.2em;
-    font-weight: bold;
-}
-
-#header-lhs {grid-area: header-lhs;}
-#header-rhs {grid-area: header-rhs;}
-
-#r-eval {
-  grid-area: r-eval;
-  padding-bottom: 1em;
-  border-bottom: 1px solid #ccc;
-}
-
-#sql-eval {
-  grid-area: sql-eval;
-  padding-bottom: 1em;
-  border-bottom: 1px solid #ccc;
-}
-
-#sql-output {
-  grid-area: sql-output;
-}
-
-#r-output {
-  grid-area: r-output;
-}
-
 #r-status {
   padding: .5em 0;
   margin: .1em 0;

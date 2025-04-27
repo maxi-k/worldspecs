@@ -6,6 +6,8 @@
   <title>Cloudspecs</title>
 
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/tableview.css">
+  <link rel="stylesheet" href="/splitview.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://cdn.datatables.net/2.0.2/css/dataTables.dataTables.min.css">
 
@@ -36,11 +38,14 @@
   <div id="app" class="splitview">
       <header id="header-lhs" class="header-segment">
         <span class="title">Cloudspec</span>
-        <button class="view-changer" id="view-changer-leftview">&rarr;</button>
       </header>
       <header id="header-rhs" class="header-segment">
-        <button class="view-changer" id="view-changer-rightview">&larr;</button>
-        <button class="btn btn-primary" id="reset-btn">Reset</button>
+        <button class="btn btn-primary dt-button" id="toggle-viz-btn">Visualize</button>
+        <div id="global-header-buttons">
+          <button class="btn btn-primary dt-button" id="reset-btn">Reset</button>
+          <button class="btn btn-primary dt-button" id="share-btn">Share</button>
+          <button class="btn btn-primary dt-button" id="download-btn">Download DB</button>
+        </div>
       </header>
     <!-- sql evaluation (editor + button) -->
     <div id="sql-eval">
@@ -60,6 +65,7 @@
     <div id="r-output"></div>
     <!-- global toast -->
     <div id="toast" class="toast">Link copied to clipboard!</div>
+    <div id="grid-resize"></div>
   </div>
   <script type="module" src="/main.js"></script>
 </body>

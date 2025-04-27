@@ -12,31 +12,62 @@ document.addEventListener('DOMContentLoaded', () => {
     state.saveState();
   }, ['result', 'rOutput']);
 
+  // button for sharing url
+  $('#share-btn').click(() => {
+    // state.saveState();
+    const text = window.location.href;
+    navigator.clipboard.writeText(text).then(() => {
+      showToast("Link copied to clipboard!");
+    }).catch(err => console.error("Failed to copy: ", err));
+  });
+
+  // button for downloading full duckdb
+  $('#download-btn').click(() => {
+    const base = window.location.origin + window.location.pathname;
+    window.location.href = `${base}/static/cloudspecs.duckdb`; // Target URL
+  });
+
+  // button for resetting page
+  $('#reset-btn').click((e) => {
+    const newUrl = window.location.origin + window.location.pathname;
+    window.location = newUrl;
+  });
+
   // buttons for changing view type
+  $('#toggle-viz-btn').click((e) => {
+    let elem = $('#app');
+    if (elem.hasClass('splitview')) {
+      elem.removeClass('splitview').addClass('tableview');
+      $('#toggle-viz-btn').text('Visualize');
+    } else {
+      elem.removeClass('tableview').addClass('splitview');
+      $('#toggle-viz-btn').text('Table only');
+    }
+  });
 
-
-    $('#view-changer-rightview').click((e) => {
-        let elem = $('#app');
-        if (elem.hasClass('splitview')) {
-            elem.removeClass('splitview').addClass('rightview');
-        } else {
-            elem.removeClass('leftview').addClass('splitview');
-        }
+  // grid resize drag handler
+  var isDragging = false;
+  $('#grid-resize')
+    .mousedown(function() {
+      console.log("mosuedown");
+      isDragging = true;
+    })
+    .mousemove(function() {
+      if (!isDragging) return;
+      console.log("mousemove");
+      // get mouse x position, set grid-template-columns of grid view
+      var mouseX = event.pageX;
+      var gridPercent = (mouseX / $('#app').width()) * 100;
+      console.log("gridPercent", gridPercent);
+      $('.splitview').css('grid-template-columns', `calc(${gridPercent}% - 3px) 6px calc(${100 - gridPercent}% - 3px)`);
+      isDragging = true;
+    })
+    .mouseup(function() {
+      console.log("mouseup");
+      var wasDragging = isDragging;
+      isDragging = false;
     });
 
-    $('#view-changer-leftview').click((e) => {
-        let elem = $('#app');
-        if (elem.hasClass('splitview')) {
-            elem.removeClass('splitview').addClass('leftview');
-        } else {
-            elem.removeClass('rightview').addClass('splitview');
-        }
-    });
-
-    $('#reset-btn').click((e) => {
-        const newUrl = window.location.origin + window.location.pathname;
-        window.location = newUrl;
-    });
 });
 
 //////////////////////// SQL Editor  ///////////////////////
