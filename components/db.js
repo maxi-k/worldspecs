@@ -7,7 +7,6 @@ import eh_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url'
 // Load static DuckDB database from GitHub
 import dbfile from '/static/cloudspecs.duckdb?url';
 
-
 const MANUAL_BUNDLES = Object.freeze({
     mvp: {
         mainModule: duckdb_wasm,

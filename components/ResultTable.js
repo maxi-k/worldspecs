@@ -1,19 +1,6 @@
 // For rendering EC2 Table
 import 'datatables.net-responsive-dt';
-
 /// XXX replace cdn with js modules and bundle using vite
-
-
-function showToast(message) {
-    const toast = $("#toast").text(message).addClass("show");
-    setTimeout(() => { toast.removeClass("show"); }, 2000);
-}
-
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showToast("Link copied to clipboard!");
-    }).catch(err => console.error("Failed to copy: ", err));
-}
 
 export default class ResultTable {
   #selector;

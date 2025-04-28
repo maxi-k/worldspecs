@@ -7,6 +7,11 @@ import ResultTable from './components/ResultTable.js';
 import ErrorMessage from './components/ErrorMessage.js';
 import ResizeHandle from './components/ResizeHandle.js';
 
+function showToast(message) {
+    const toast = $("#toast").text(message).addClass("show");
+    setTimeout(() => { toast.removeClass("show"); }, 2000);
+}
+
 const app = {};
 document.addEventListener('DOMContentLoaded', () => {
   // set up listener for updating url
