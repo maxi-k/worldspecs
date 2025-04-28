@@ -5,7 +5,9 @@ import CodeEditor from './components/CodeEditor.js';
 import DB from './components/db.js';
 import ResultTable from './components/ResultTable.js';
 import ErrorMessage from './components/ErrorMessage.js';
+import ResizeHandle from './components/ResizeHandle.js';
 
+const app = {};
 document.addEventListener('DOMContentLoaded', () => {
   // set up listener for updating url
   state.subscribe((newState, updates) => {
@@ -46,29 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // grid resize drag handler
-  var isDragging = false;
-  $('#grid-resize')
-    .mousedown(function() {
-      console.log("mosuedown");
-      isDragging = true;
-    })
-    .mousemove(function() {
-      if (!isDragging) return;
-      console.log("mousemove");
-      // get mouse x position, set grid-template-columns of grid view
-      var mouseX = event.pageX;
-      var gridPercent = (mouseX / $('#app').width()) * 100;
-      console.log("gridPercent", gridPercent);
-      $('.splitview').css('grid-template-columns', `calc(${gridPercent}% - 3px) 6px calc(${100 - gridPercent}% - 3px)`);
-      isDragging = true;
-    })
-    .mouseup(function() {
-      console.log("mouseup");
-      var wasDragging = isDragging;
-      isDragging = false;
-    });
-
+  app.resizeHandle = new ResizeHandle('app', 'grid-resize');
 });
+
 
 //////////////////////// SQL Editor  ///////////////////////
 document.addEventListener('DOMContentLoaded', async () => {
@@ -78,7 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const query = state.getState().sqlQuery;
     let result;
     try {
-      result = await db.query(query);
+      result = await app.db.query(query);
     } catch (err) {
       result = { error: [err.toString()] };
     }
@@ -90,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // SQL Code Editor
-  const sqlEditor = new CodeEditor('#sql-editor', {
+  app.sqlEditor = new CodeEditor('#sql-editor', {
     mode: 'text/x-sql',
     stateKey: 'sqlQuery',
     extraKeys: {
@@ -98,16 +80,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
   // error message for SQL
-  const sqlError = new ErrorMessage('#sql-status', 'sqlError');
+  app.sqlError = new ErrorMessage('#sql-status', 'sqlError');
 
   // Initialize database and result table
-  const db = await DB.create();
-  const resultTable = new ResultTable('#sql-output');
+  app.db = await DB.create();
+  app.resultTable = new ResultTable('#sql-output');
 
   // Handle state updates for query results
   state.subscribe((newState, updates) => {
     const { columns, rows, query } = newState.result;
-    resultTable.render(columns, rows, query);
+    app.resultTable.render(columns, rows, query);
     if (window.rmodule) {
       window.rmodule.onDataUpdate({ columns, rows });
     }
@@ -133,9 +115,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 document.addEventListener('DOMContentLoaded', async () => {
   const RRepl = await import('./components/RRepl.js');
   // error message for R
-  const rError = new ErrorMessage('#r-status', 'rError');
+  app.rError = new ErrorMessage('#r-status', 'rError');
   // Prepare R evaluation area
-  const rEditor = new CodeEditor("#r-editor", {
+  app.rEditor = new CodeEditor("#r-editor", {
       mode: 'text/x-rsrc',
       stateKey: 'rCode',
       extraKeys: {
@@ -145,10 +127,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Initialize R environment
   const outputElem = 'r-output';
-  const repl = await RRepl.default.initialize(outputElem);
+  app.repl = await RRepl.default.initialize(outputElem);
   async function evalR() {
     const { rCode, result } = state.getState();
-    const res = await repl.eval(rCode, result);
+    const res = await app.repl.eval(rCode, result);
     if (res.error) {
       state.setState({ rError: res.error });
     } else {
