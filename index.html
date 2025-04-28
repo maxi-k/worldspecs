@@ -33,22 +33,47 @@
 </head>
 
 <body>
-  <div id="app">
-    <div id="tabs">
-      <ul class="tab-links">
-        <li><a href="#sql-tab">SQL</a></li>
-        <li><a href="#r-eval">GGPlot</a></li>
-      </ul>
-      <div id="sql-tab">
-        <textarea id="sql-editor">SELECT * FROM aws;</textarea>
+  <div id="app" class="tableview">
+      <header id="header-lhs" class="header-segment">
+        <span class="title">Cloudspecs</span>
+      </header>
+      <header id="header-rhs" class="header-segment">
+        <button class="btn btn-primary dt-button" id="toggle-viz-btn">&#9664; Visualize</button>
+        <div id="global-header-buttons">
+          <button class="btn btn-primary dt-button" id="reset-btn">Reset</button>
+          <button class="btn btn-primary dt-button" id="share-btn">Share</button>
+        </div>
+      </header>
+    <!-- sql evaluation (editor + button) -->
+    <main id="sql-eval">
+      <textarea id="sql-editor"></textarea>
+      <div class="padded-view">
         <input type="submit" id="load-table" name="load-table" value="Execute [Ctrl+Enter]">
-        <div id="toast" class="toast">Link copied to clipboard!</div>
-        <div id="error-msg"></div>
+        <div id="sql-status" class="error-msg"></div>
+        <table id="sql-output" class="display nowrap"></table>
       </div>
-      <div id="r-eval"></div>
-    </div> <!-- end tabs -->
-    <table id="ec2-instances" class="display">
-    </table>
+    </main>
+    <!-- r evaluation (editor + button) -->
+    <aside id="r-eval">
+      <textarea id="r-editor" class="form-control" rows="10"></textarea>
+      <div class="padded-view">
+      <div class="centered-content">
+        <button class="btn btn-primary dt-button" id="svg-dl-btn">Download SVG</button>
+      </div>
+      <div id="r-status" class="error-msg"></div>
+      <div id="r-output"></div>
+      </div>
+    </aside>
+    <!-- r output (visualization) -->
+    <!-- global toast -->
+    <div id="toast" class="toast">Link copied to clipboard!</div>
+    <div id="grid-resize"></div>
+    <footer>
+      <div id="footer-links">
+        <a href="https://github.com/TUM-DIS/cloudspecs" target="_blank">&#11088; Star</a>
+        <a href="https://github.com/TUM-DIS/cloudspecs/tree/main/static" target="_blank">Download Database [DuckDB]</a>
+      </div>
+      <span>Made with &#10084; by <a href="https://www.cs.cit.tum.de/dis/home/">TUM DIS</a></span>
   </div>
   <script type="module" src="/main.js"></script>
 </body>

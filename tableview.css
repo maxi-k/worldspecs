@@ -1,0 +1,34 @@
+.tableview {
+    display: grid;
+    grid-template-areas:
+        "header-lhs header-rhs"
+        "sql-eval   sql-eval"
+        /* "sql-output r-output"; */
+        "footer footer";
+
+    grid-template-columns: 1fr 1fr;
+
+    #header-lhs {
+        grid-area: header-lhs;
+        justify-content: flex-begin;
+    }
+
+    #header-rhs {
+        grid-area: header-rhs;
+        justify-content: flex-end;
+    }
+
+    #sql-eval {
+        grid-area: sql-eval;
+        padding-bottom: 1em;
+        border-bottom: 1px solid #ccc;
+    }
+
+    #grid-resize, #r-eval, #r-output {
+        display: none;
+    }
+
+    footer {
+        grid-area: footer;
+    }
+}

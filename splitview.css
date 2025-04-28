@@ -1,0 +1,44 @@
+.splitview {
+    display: grid;
+    grid-template-areas:
+        "header-lhs grid-resize header-rhs"
+        "sql-eval   grid-resize r-eval"
+        /*  "sql-output grid-resize r-output" */
+        "footer footer footer";
+
+    grid-template-columns: calc(50% - 3px) 6px calc(50% - 3px);
+
+    #grid-resize {
+        background-color: lightgray;
+        grid-area: grid-resize;
+        cursor: ew-resize;
+    }
+
+    .header-segment {
+        justify-content: space-between;
+    }
+
+    .header-segment .title {
+        display: inline-block;
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+
+    #header-lhs {grid-area: header-lhs;}
+    #header-rhs {grid-area: header-rhs;}
+
+    #r-eval {
+        grid-area: r-eval;
+    }
+
+    #sql-eval {
+        grid-area: sql-eval;
+    }
+
+    footer {
+        grid-area: footer;
+    }
+
+    /*#sql-output_wrapper {grid-area: sql-output;}*/
+    /*#r-output {grid-area: r-output;}*/
+}

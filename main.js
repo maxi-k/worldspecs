@@ -1,235 +1,183 @@
-import * as duckdb from '@duckdb/duckdb-wasm';
-import duckdb_wasm from '@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url';
-import mvp_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url';
-import duckdb_wasm_next from '@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url';
-import eh_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url';
+// main.js
+// Orchestrates components: state manager, code editors, database querying, and table rendering
+import state from './components/state.js';
+import CodeEditor from './components/CodeEditor.js';
+import DB from './components/db.js';
+import ResultTable from './components/ResultTable.js';
+import ErrorMessage from './components/ErrorMessage.js';
+import ResizeHandle from './components/ResizeHandle.js';
 
-// For rendering EC2 Table
-import 'datatables.net-responsive-dt';
-
-// Load static DuckDB database from GitHub
-import dbfile from './static/cloudspecs.duckdb?url';
-
-
-// Helpers for encoding query in URL
-function base64Encode(str) {
-    return btoa(encodeURIComponent(str)); // Encode to Base64
+const showToast = (message) => {
+    const toast = $("#toast").text(message).addClass("show");
+    setTimeout(() => { toast.removeClass("show"); }, 2000);
 }
 
-function base64Decode(str) {
+const debounce = (callback, delay_ms) => {
+  let id = null;
+  return (...args) => {
+    window.clearTimeout(id);
+    id = window.setTimeout(() => {callback(...args);}, delay_ms);
+  };
+}
+
+const app = {};
+////////////////////////  SQL Editor  ///////////////////////
+document.addEventListener('DOMContentLoaded', async () => {
+  // Run query based on current state.sqlQuery
+  async function runQuery() {
+    state.setState({ sqlError: '' });
+    const query = state.getState().sqlQuery;
+    let result;
     try {
-        return decodeURIComponent(atob(str)); // Decode from Base64
-    } catch (e) {
-        return ""; // Handle invalid Base64
+      result = await app.db.query(query);
+    } catch (err) {
+      result = { error: err.toString() };
     }
-}
-
-function getQueryParam(name) {
-    const params = new URLSearchParams(window.location.search);
-    return params.get(name);
-}
-
-function setQueryParam(name, value) {
-    const params = new URLSearchParams();
-    params.set(name, value);
-    return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-}
-
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showToast("Link copied to clipboard!");
-    }).catch(err => console.error("Failed to copy: ", err));
-}
-
-function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.add("show");
-
-    setTimeout(() => { toast.classList.remove("show"); }, 2000);
-}
-
-const defaultQuery = "SELECT *\nFROM aws";
-
-// Text Editor with Syntax Highlighting
-let editor;
-let rmodule;
-document.addEventListener("DOMContentLoaded", async function () {
-    const base64Query = getQueryParam("query");
-    const initialContent = base64Query ? base64Decode(base64Query) : defaultQuery;
-    editor = CodeMirror.fromTextArea(document.getElementById("sql-editor"), {
-        mode: "text/x-sql", // SQL mode
-        lineNumbers: true, // Show line numbers
-        matchBrackets: true, // Highlight matching brackets
-        autoCloseBrackets: true // Auto-close brackets
-    });
-    editor.setValue(initialContent);
-
-    // await import other js file lazily
-    try {
-        // prepare output area
-        let reval = document.getElementById("r-eval");
-        // append editor and graphic output area
-        reval.innerHTML += '<textarea id="r-editor" class="form-control" rows="10" placeholder="Enter R code here"></textarea>';
-        reval.innerHTML += '<button id="execute-r">Plot [Ctrl+Enter]</button>';
-        reval.innerHTML += '<div id="r-status" class="output">Loading R...</div>';
-        reval.innerHTML += '<div id="r-output" class="output"></div>';
-        // load module
-        rmodule = await import('./static/plot.js')
-
-        await rmodule.initializeR('r-status')
-        console.log("R module loaded successfully");
-
-
-        let editor = document.getElementById("r-editor");
-        let out = document.getElementById("r-output");
-        let submit = document.getElementById("execute-r");
-        // code mirror editor
-        let r_editor = CodeMirror.fromTextArea(editor, {
-            mode: "text/x-rsrc", // R mode
-            lineNumbers: true, // Show line numbers
-            matchBrackets: true, // Highlight matching brackets
-            autoCloseBrackets: true, // Auto-close brackets
-            extraKeys: {
-                "Ctrl-Enter": function (cm) {
-                    submit.click();
-                }
-            }
-        });
-
-        // initialize R repl
-        await rmodule.makeRRepl(r_editor, out, 'r-output', submit);
-        await recreateTable();
-        submit.click();
-    } catch (error) {
-        console.error("Failed to load R module", error);
-        alert("Failed to load R module");
+    if (result.error) {
+      state.setState({ result: { columns: [], rows: [], query }, sqlError: result.error });
+    } else {
+      state.setState({ result: { columns: result.columns, rows: result.rows, query }, sqlError: '' });
     }
+  }
+
+  // SQL Code Editor
+  app.sqlEditor = new CodeEditor('#sql-editor', {
+    mode: 'text/x-sql',
+    stateKey: 'sqlQuery',
+    // handled in global ctrlenter listener below
+    // extraKeys: { 'Ctrl-Enter': runQuery }
+  });
+  // error message for SQL
+  app.sqlError = new ErrorMessage('#sql-status', 'sqlError');
+
+  // Initialize database and result table
+  app.db = await DB.create();
+  app.resultTable = new ResultTable('#sql-output');
+
+  // Handle state updates for query results
+  state.subscribe((newState, updates) => {
+    const { columns, rows, query } = newState.result;
+    app.resultTable.render(columns, rows, query);
+    if (window.rmodule) {
+      window.rmodule.onDataUpdate({ columns, rows });
+    }
+  }, ['result', 'viewsize']);
+
+  // Load table button
+  document.getElementById('load-table').addEventListener('click', async (e) => {
+    e.preventDefault();
+    await runQuery();
+  });
+
+  // Fallback Ctrl+Enter
+  document.addEventListener('keydown', (event) => {
+    if (event.ctrlKey && event.key === 'Enter') {
+      runQuery();
+    }
+  });
+
+  await runQuery();
 });
 
+////////////////////////  R module  ///////////////////////
+document.addEventListener('DOMContentLoaded', async () => {
+  const RRepl = await import('./components/RRepl.js');
+  // error message for R
+  app.rError = new ErrorMessage('#r-status', 'rError');
+  // Prepare R evaluation area
+  app.rEditor = new CodeEditor("#r-editor", {
+    mode: 'text/x-rsrc',
+    stateKey: 'rCode',
+    // handled in global ctrlenter listener
+    // extraKeys: { 'Ctrl-Enter': () => evalR() },
+    overrides: { lineNumbers: false }
+  });
 
-const MANUAL_BUNDLES = {
-    mvp: {
-        mainModule: duckdb_wasm,
-        mainWorker: mvp_worker,
-    },
-    eh: {
-        mainModule: duckdb_wasm_next,
-        mainWorker: eh_worker
-    },
-};
-
-// Select a bundle based on browser checks
-const bundle = await duckdb.selectBundle(MANUAL_BUNDLES);
-
-// Instantiate the asynchronus version of DuckDB-wasm
-const worker = new Worker(bundle.mainWorker);
-const logger = new duckdb.ConsoleLogger();
-const db = new duckdb.AsyncDuckDB(logger, worker);
-await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-
-// Fetch the database file
-//TODO: Could fail for large objects
-const arrayBuffer = new Uint8Array(await (await fetch(dbfile)).arrayBuffer());
-
-// Register the file in DuckDB's virtual filesystem
-await db.registerFileBuffer("cloudspecs.duckdb", new Uint8Array(arrayBuffer));
-const conn = await db.connect();
-await conn.send("ATTACH 'cloudspecs.duckdb' AS specs;");
-await conn.send("USE specs;");
-
-async function createTable() {
-    let query = editor.getValue();
-    const result = await conn.query(query).then(response => {
-        return {
-            columns: response.schema.fields.map(field => field.name),
-            rows: // Bug fix explained at: https://github.com/GoogleChromeLabs/jsbi/issues/30
-            JSON.parse(JSON.stringify(response.toArray(), (key, value) =>
-                typeof value === 'bigint' ? parseInt(value.toString()) : value // return everything else unchanged
-            ))
-        }
-    }, error => {
-        return { error: error.toString()?.split("\n") }
-    });
-
-
-    if ("error" in result) {
-        $("#error-msg").text(result.error);
-        return $('#ec2-instances').DataTable({});
+  // Initialize R environment
+  const outputElem = 'r-output';
+  app.repl = await RRepl.default.initialize(outputElem);
+  async function evalR() {
+    const { rCode, result } = state.getState();
+    const res = await app.repl.eval(rCode, result);
+    if (res.error) {
+      state.setState({ rError: res.error });
+    } else {
+      state.setState({ rError: '', rOutput: res.svg });
+      document.getElementById(outputElem).innerHTML = res.svg;
     }
-    let columns = result.columns.map(key => ({ title: key, data: row => row[key] }));
+  }
+  // 'Execute R' button
+  // document.getElementById('execute-r').addEventListener('click', async (e) => {await evalR();});
 
-    // Add column headers to <thead>
-    const theadRow = $('#ec2-instances thead tr');
-    result.columns.forEach(key => {
-        theadRow.append(`<th>${key}</th>`);
-    });
-
-    // Set table in R context
-    if (rmodule) {
-        rmodule.onDataUpdate(result);
+  // evaluate R when sql state changes
+  state.subscribe((newState, updates) => {
+    if (newState.sqlError) { return; }
+    if ('viewsize' in updates) {
+      app.rEditor.refresh();
     }
+    evalR();
+  }, ['result', 'viewsize']);
 
-    return $('#ec2-instances').DataTable({
-        data: result.rows,
-        columns: columns,
-        ordering: false,
-        dom: '<"top-toolbar d-flex justify-content-between align-items-center"iBf>rt<"bottom-toolbar d-flex justify-content-between align-items-center"lp><"clear">',
-        buttons: [
-            {
-                extend: 'csv',
-                filename: 'ec2_instances_data',
-                text: 'Export Result [CSV]'
-            }
-            ,
-            {
-                extend: 'excel',
-                filename: 'ec2_instances_data',
-                text: 'Export Result [XLS]'
-            },
-            {
-                text: 'Export Database [DuckDB]',
-                action: function (e, dt, node, config) {
-                    window.location.href = 'https://github.com/TUM-DIS/cloudspecs/blob/main/static/cloudspecs.duckdb'; // Target URL
-                },
-                className: 'btn btn-primary'  // Bootstrap styling (optional)
-            },
-            {
-                text: 'Share',
-                action: function () {
-                    const encodedQuery = base64Encode(query);
-                    const shareableLink = setQueryParam("query", encodedQuery);
-                    copyToClipboard(shareableLink);
-                }
-            }],
-        pageLength: 100, // default row count
-        lengthMenu: [25, 50, 100, 200, 1000]
-    });
-}
+  // Initial query to populate table based on URL/state
+  await evalR();
+});
 
-// Render initial table with our sample query
-let dataTables = await createTable();
+////////////////////////  Window Resizing, Global Buttons, etc.   ///////////////////////
+document.addEventListener('DOMContentLoaded', () => {
+  state.subscribe((newState, updates) => {
+    // don't save when there are errors is empty
+    if (newState.sqlError || newState.rError) { return; }
+    if ('result' in updates || 'rOutput' in updates) {
+      state.saveState();
+    }
+  }, ['result', 'rOutput']);
 
-const recreateTable = async () => {
-    dataTables.clear();
-    dataTables.destroy();
-    $('#ec2-instances thead').empty().append("<tr></tr>");
-    dataTables = await createTable();
-}
+  // button for sharing url
+  $('#share-btn').click(() => {
+    // state.saveState();
+    const text = window.location.href;
+    navigator.clipboard.writeText(text).then(() => {
+      showToast("Link copied to clipboard!");
+    }).catch(err => console.error("Failed to copy: ", err));
+  });
 
-$(document).ready(async function () {
-    $("#load-table").on("click", async function (e) {
-        e.preventDefault();
-        $("#error-msg").text("");
-        recreateTable();
-    });
+  // button for downloading svg
+  $('#svg-dl-btn').click(() => {
+    const svgData = state.getState().rOutput;
+    const blob = new Blob([svgData], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    // download
+    window.open(url, '_blank');
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
 
-    $("#tabs").tabs();
+  // button for resetting page
+  $('#reset-btn').click((e) => {
+    const newUrl = window.location.origin + window.location.pathname;
+    window.location = newUrl;
+  });
 
-    document.addEventListener('keydown', async function (event) {
-        if (event.ctrlKey && event.key == "Enter") {
-            $("#error-msg").text("");
-            recreateTable();
-        }
-    });
+  // buttons for changing view type
+  $('#toggle-viz-btn').click((e) => {
+    let elem = $('#app');
+    if (elem.hasClass('splitview')) {
+      elem.removeClass('splitview').addClass('tableview');
+      $('#toggle-viz-btn').html('&#9664; Visualize');
+    } else {
+      elem.removeClass('tableview').addClass('splitview');
+      $('#toggle-viz-btn').html('Table only &#9654;');
+    }
+    // clear all styles set in the meantime
+    elem.removeAttr("style");
+    state.setState({ viewsize: window.innerWidth });
+  });
+
+  // grid resize drag handler
+  app.resizeHandle = new ResizeHandle('.splitview', '#grid-resize', (pct) => {
+    state.setState({ viewsize: window.innerWidth * pct } );
+  });
+
+  // public resize event on window resize as well
+  const resizeHandler = debounce(() => state.setState({ viewsize: window.innerWidth }), 500/*ms*/);
+  window.addEventListener('resize', resizeHandler);
 });
