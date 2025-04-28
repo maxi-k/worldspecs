@@ -2,8 +2,8 @@
     display: grid;
     grid-template-areas:
         "header-lhs header-rhs"
-        "sql-eval   sql-eval"
-        "sql-output sql-output";
+        "sql-eval   sql-eval";
+        /* "sql-output r-output"; */
 
     grid-template-columns: 1fr 1fr;
 
@@ -37,9 +37,7 @@
         border-bottom: 1px solid #ccc;
     }
 
-    #sql-output_wrapper {
-        grid-area: sql-output;
-    }
+    /* #sql-output_wrapper {grid-area: sql-output;} */
 
     #grid-resize, #r-eval, #r-output {
         display: none;

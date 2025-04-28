@@ -147,9 +147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
   // 'Execute R' button
-  document.getElementById('execute-r').addEventListener('click', async (e) => {
-    await evalR();
-  });
+  // document.getElementById('execute-r').addEventListener('click', async (e) => {await evalR();});
 
   // evaluate R when sql state changes
   state.subscribe((newState, updates) => {

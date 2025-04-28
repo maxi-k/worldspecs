@@ -2,8 +2,8 @@
     display: grid;
     grid-template-areas:
         "header-lhs grid-resize header-rhs"
-        "sql-eval   grid-resize r-eval"
-        "sql-output grid-resize r-output";
+        "sql-eval   grid-resize r-eval";
+        /*  "sql-output grid-resize r-output"; */
 
     grid-template-columns: calc(50% - 3px) 6px calc(50% - 3px);
 
@@ -43,11 +43,6 @@
         border-bottom: 1px solid #ccc;
     }
 
-    #sql-output_wrapper {
-        grid-area: sql-output;
-    }
-
-    #r-output {
-        grid-area: r-output;
-    }
+    /*#sql-output_wrapper {grid-area: sql-output;}*/
+    /*#r-output {grid-area: r-output;}*/
 }

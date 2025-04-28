@@ -50,17 +50,17 @@
       <textarea id="sql-editor"></textarea>
       <input type="submit" id="load-table" name="load-table" value="Execute [Ctrl+Enter]">
       <div id="sql-status" class="error-msg"></div>
+      <!-- sql output (table) -->
+      <table id="sql-output" class="display nowrap"></table>
     </div>
-    <!-- sql output (table) -->
-    <table id="sql-output" class="display nowrap"></table>
     <!-- r evaluation (editor + button) -->
     <div id="r-eval">
       <textarea id="r-editor" class="form-control" rows="10"></textarea>
-      <button id="execute-r">Plot [Ctrl+Enter]</button>
+      <!--- <button id="execute-r">Plot [Ctrl+Enter]</button> -->
       <div id="r-status" class="error-msg"></div>
+      <div id="r-output"></div>
     </div>
     <!-- r output (visualization) -->
-    <div id="r-output"></div>
     <!-- global toast -->
     <div id="toast" class="toast">Link copied to clipboard!</div>
     <div id="grid-resize"></div>
