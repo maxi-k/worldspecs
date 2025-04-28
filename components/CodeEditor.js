@@ -10,7 +10,7 @@ import state from './state.js';
  */
 export default class CodeEditor {
   constructor(selector, options = {}) {
-    const { mode, stateKey, extraKeys } = options;
+    const { mode, stateKey, extraKeys = {}, overrides = {} } = options;
     const textarea = document.querySelector(selector);
     if (!textarea) {
       throw new Error(`CodeEditor: element not found (${selector})`);
@@ -21,7 +21,8 @@ export default class CodeEditor {
       lineNumbers: true,
       matchBrackets: true,
       autoCloseBrackets: true,
-      extraKeys: extraKeys || {}
+      extraKeys: extraKeys || {},
+      ...overrides
     });
     // Set initial content from state
     const init = state.getState()[stateKey] || '';

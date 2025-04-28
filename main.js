@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       result = await app.db.query(query);
     } catch (err) {
-      result = { error: [err.toString()] };
+      result = { error: err.toString() };
     }
     if (result.error) {
       state.setState({ result: { columns: [], rows: [], query }, sqlError: result.error });
@@ -129,7 +129,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       stateKey: 'rCode',
       extraKeys: {
         'Ctrl-Enter': () => evalR()
-      }
+      },
+    overrides: { lineNumbers: false }
   });
 
   // Initialize R environment

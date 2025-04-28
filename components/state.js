@@ -55,15 +55,15 @@ let state = (() => {
   return { ...defaultState };
 })();
 let subscribers = [];
-let subscriptionPaths = {}
+let subscriptionPaths = new Map();
 
 // Subscribe to state changes. Callback receives (newState, updates).  Returns an unsubscribe function.
 const subscribe = (callback, paths = []) => {
   subscribers.push(callback);
-  subscriptionPaths[callback] = new Set(paths);
+  if (paths.length > 0) { subscriptionPaths.set(callback, new Set(paths)); }
   return () => {
     subscribers = subscribers.filter(fn => fn !== callback);
-    delete subscriptionPaths[callback];
+    subscriptionPaths.delete(callback);
   };
 }
 
@@ -76,7 +76,7 @@ const setState = (updates) => {
   const snapshot = getState();
   subscribers.forEach(cb => {
     if (Object.keys(updates).some(key => // paths empty or includes key
-      subscriptionPaths[cb].size == 0 || subscriptionPaths[cb].has(key))
+      !subscriptionPaths.has(cb) || subscriptionPaths.get(cb).has(key))
     ) {
       cb(snapshot, updates);
     }

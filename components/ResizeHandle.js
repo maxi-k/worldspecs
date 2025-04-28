@@ -12,7 +12,6 @@ export default class ResizeHandle {
                       up: this.pointerUp.bind(this),
                       down: this.pointerDown.bind(this) };
     $(this.#handle)[0].addEventListener("pointerdown", this.#handlers.down);
-    console.log($(this.#handle)[0]);
   }
 
   pointerDown(evt) {
