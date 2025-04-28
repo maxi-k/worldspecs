@@ -12,6 +12,14 @@ const showToast = (message) => {
     setTimeout(() => { toast.removeClass("show"); }, 2000);
 }
 
+const debounce = (callback, delay_ms) => {
+  let id = null;
+  return (...args) => {
+    window.clearTimeout(id);
+    id = window.setTimeout(() => {callback(...args);}, delay_ms);
+  };
+}
+
 const app = {};
 ////////////////////////  SQL Editor  ///////////////////////
 document.addEventListener('DOMContentLoaded', async () => {
@@ -169,7 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // public resize event on window resize as well
-  window.addEventListener('resize', () => {
-    state.setState({ viewsize: window.innerWidth })
-  });
+  const resizeHandler = debounce(() => state.setState({ viewsize: window.innerWidth }), 500/*ms*/);
+  window.addEventListener('resize', resizeHandler);
 });
