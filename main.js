@@ -37,9 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     mode: 'text/x-sql',
     stateKey: 'sqlQuery',
     // handled in global ctrlenter listener below
-    // extraKeys: {
-    //   'Ctrl-Enter': runQuery
-    // }
+    // extraKeys: { 'Ctrl-Enter': runQuery }
   });
   // error message for SQL
   app.sqlError = new ErrorMessage('#sql-status', 'sqlError');
@@ -55,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.rmodule) {
       window.rmodule.onDataUpdate({ columns, rows });
     }
-  }, ['result']);
+  }, ['result', 'viewsize']);
 
   // Load table button
   document.getElementById('load-table').addEventListener('click', async (e) => {
@@ -80,11 +78,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   app.rError = new ErrorMessage('#r-status', 'rError');
   // Prepare R evaluation area
   app.rEditor = new CodeEditor("#r-editor", {
-      mode: 'text/x-rsrc',
-      stateKey: 'rCode',
-      extraKeys: {
-        'Ctrl-Enter': () => evalR()
-      },
+    mode: 'text/x-rsrc',
+    stateKey: 'rCode',
+    // handled in global ctrlenter listener
+    // extraKeys: { 'Ctrl-Enter': () => evalR() },
     overrides: { lineNumbers: false }
   });
 
