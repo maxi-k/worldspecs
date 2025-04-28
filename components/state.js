@@ -22,7 +22,7 @@ const URL_ENCODED_KEYS = ['sqlQuery', 'rCode'];
 const defaultState = {
   // default SQL query to run
   sqlQuery: //
-`SELECT release_year, arch, max(core_count/price_hour_usd) cores_per_usd, arg_max(instance, core_count/price_hour_usd) best_instance
+`SELECT release_year, arch, max(cores/price_hour) cores_per_usd, arg_max(instance, cores/price_hour) best_instance
 FROM aws
 group by release_year, arch
 order by cores_per_usd desc`,

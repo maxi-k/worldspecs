@@ -44,6 +44,5 @@ export default class CodeEditor {
 
   refresh() {
     this.editor.refresh();
-    console.log('refreshing editor');
   }
 }
