@@ -46,20 +46,6 @@ export default class ResultTable {
                 extend: 'excel',
                 filename: 'ec2_instances_data',
                 text: 'Export Result [XLS]'
-            },
-            {
-                text: 'Export Database [DuckDB]',
-                action: function (e, dt, node, config) {
-                    window.location.href = 'https://github.com/TUM-DIS/cloudspecs/blob/main/static/cloudspecs.duckdb'; // Target URL
-                },
-                className: 'btn btn-primary'  // Bootstrap styling (optional)
-            },
-            {
-                text: 'Share',
-                action: function () {
-                    // Copy current URL (state is serialized in URL)
-                    copyToClipboard(window.location.href);
-                }
             }
         ],
         pageLength: 100, // default row count

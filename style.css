@@ -124,6 +124,10 @@ thead {
   justify-content: center;
 }
 
+#toggle-viz-btn {
+  margin-right: .668em;
+}
+
 .tab-links {
   list-style-type: none;
   padding: 0;

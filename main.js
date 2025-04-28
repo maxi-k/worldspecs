@@ -45,10 +45,12 @@ document.addEventListener('DOMContentLoaded', () => {
       elem.removeClass('tableview').addClass('splitview');
       $('#toggle-viz-btn').text('Table only');
     }
+    // clear all styles set in the meantime
+    elem.removeAttr("style");
   });
 
   // grid resize drag handler
-  app.resizeHandle = new ResizeHandle('app', 'grid-resize');
+  app.resizeHandle = new ResizeHandle('.splitview', '#grid-resize');
 });
 
 

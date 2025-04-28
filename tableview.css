@@ -9,7 +9,6 @@
 
     .header-segment {
         display: flex;
-        justify-content: space-between;
         align-items: center;
         padding: 1em .5em 1em .5em;
         background-color: #f8f8f8;
@@ -22,8 +21,15 @@
         font-weight: bold;
     }
 
-    #header-lhs {grid-area: header-lhs;}
-    #header-rhs {grid-area: header-rhs;}
+    #header-lhs {
+        grid-area: header-lhs;
+        justify-content: flex-begin;
+    }
+
+    #header-rhs {
+        grid-area: header-rhs;
+        justify-content: flex-end;
+    }
 
     #sql-eval {
         grid-area: sql-eval;

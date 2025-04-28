@@ -8,11 +8,12 @@ export default class ResizeHandle {
     this.#handlers = {move: this.pointerMove.bind(this),
                       up: this.pointerUp.bind(this),
                       down: this.pointerDown.bind(this) };
-    document.getElementById(this.#handle).addEventListener("pointerdown", this.#handlers.down);
+    $(this.#handle)[0].addEventListener("pointerdown", this.#handlers.down);
+    console.log($(this.#handle)[0]);
   }
 
   pointerDown(evt) {
-    if (this.#isResizing || !evt.target.closest(`#${this.#handle}`)) return;
+    if (this.#isResizing || !evt.target.closest(this.#handle)) return;
     this.#isResizing = true;
     addEventListener("pointermove", this.#handlers.move);
     addEventListener("pointerup", this.#handlers.up);
@@ -20,7 +21,7 @@ export default class ResizeHandle {
 
   pointerMove(evt) {
     evt.preventDefault();
-    const grid = document.getElementById(this.#grid)
+    const grid = $(this.#grid)[0];
     const pct = 100 * (evt.clientX / grid.clientWidth);
     grid.style["grid-template-columns"] = `calc(${pct}% - 3px) 6px calc(${100-pct}% - 3px)`;
   };
