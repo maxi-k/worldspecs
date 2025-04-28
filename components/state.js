@@ -22,10 +22,12 @@ const URL_ENCODED_KEYS = ['sqlQuery', 'rCode'];
 const defaultState = {
   // default SQL query to run
   sqlQuery: //
-`SELECT release_year, arch, max(cores/price_hour) cores_per_usd, arg_max(instance, cores/price_hour) best_instance
+`SELECT release_year, arch,
+       max(cores/price_hour) cores_per_usd,
+       arg_max(instance, cores/price_hour) best_instance
 FROM aws
-group by release_year, arch
-order by cores_per_usd desc`,
+GROUP BY release_year, arch
+ORDER BY cores_per_usd DESC`,
   // initial R code to run
   rCode: //
 `to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)
