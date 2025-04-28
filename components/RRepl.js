@@ -6,20 +6,19 @@ export default class RRepl {
   constructor(webR, outputSelector) {
     this.#webR = webR;
     this.#outputSelector = outputSelector;
-    window.addEventListener('resize', () => this.#onScreenUpdate());
   }
 
   static async initialize(outputElem) {
     const webR = await this.#initializeWebR();
     const res = new RRepl(webR, outputElem);
-    await res.#onScreenUpdate();
+    await res.onScreenUpdate();
     return res;
   }
 
   async eval(rCode, table) {
     try {
-      await this.#onScreenUpdate();
-      await this.#onDataUpdate(table);
+      await this.onScreenUpdate();
+      await this.onDataUpdate(table);
       return await this.#recreatePlot(rCode);
     } catch (e) {
       return { error: e }
@@ -42,13 +41,13 @@ export default class RRepl {
     return { svg: svgstr };
   }
 
-  async #onDataUpdate(table) {
+  async onDataUpdate(table) {
     await this.#webR.objs.globalEnv.bind('df', table.rows);
     console.log('bound new table to R:' );
     await this.#webR.evalR('print(head(df))');
   }
 
-  async #onScreenUpdate() {
+  async onScreenUpdate() {
     try {
       let w = document.getElementById(this.#outputSelector).clientWidth;
       w = w == 0  ? 0.9 * window.innerWidth : w;

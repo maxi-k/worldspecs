@@ -72,6 +72,7 @@ const getState = () => ({ ...state });
 
 // Merge updates into state, notify subscribers, and sync URL
 const setState = (updates) => {
+  // console.log('updating state with ', updates);
   state = { ...state, ...updates };
   const snapshot = getState();
   subscribers.forEach(cb => {

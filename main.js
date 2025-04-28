@@ -7,16 +7,124 @@ import ResultTable from './components/ResultTable.js';
 import ErrorMessage from './components/ErrorMessage.js';
 import ResizeHandle from './components/ResizeHandle.js';
 
-function showToast(message) {
+const showToast = (message) => {
     const toast = $("#toast").text(message).addClass("show");
     setTimeout(() => { toast.removeClass("show"); }, 2000);
 }
 
 const app = {};
-document.addEventListener('DOMContentLoaded', () => {
-  // set up listener for updating url
+////////////////////////  SQL Editor  ///////////////////////
+document.addEventListener('DOMContentLoaded', async () => {
+  // Run query based on current state.sqlQuery
+  async function runQuery() {
+    state.setState({ sqlError: '' });
+    const query = state.getState().sqlQuery;
+    let result;
+    try {
+      result = await app.db.query(query);
+    } catch (err) {
+      result = { error: err.toString() };
+    }
+    if (result.error) {
+      state.setState({ result: { columns: [], rows: [], query }, sqlError: result.error });
+    } else {
+      state.setState({ result: { columns: result.columns, rows: result.rows, query }, sqlError: '' });
+    }
+  }
+
+  // SQL Code Editor
+  app.sqlEditor = new CodeEditor('#sql-editor', {
+    mode: 'text/x-sql',
+    stateKey: 'sqlQuery',
+    // handled in global ctrlenter listener below
+    // extraKeys: {
+    //   'Ctrl-Enter': runQuery
+    // }
+  });
+  // error message for SQL
+  app.sqlError = new ErrorMessage('#sql-status', 'sqlError');
+
+  // Initialize database and result table
+  app.db = await DB.create();
+  app.resultTable = new ResultTable('#sql-output');
+
+  // Handle state updates for query results
   state.subscribe((newState, updates) => {
-    state.saveState();
+    const { columns, rows, query } = newState.result;
+    app.resultTable.render(columns, rows, query);
+    if (window.rmodule) {
+      window.rmodule.onDataUpdate({ columns, rows });
+    }
+  }, ['result']);
+
+  // Load table button
+  document.getElementById('load-table').addEventListener('click', async (e) => {
+    e.preventDefault();
+    await runQuery();
+  });
+
+  // Fallback Ctrl+Enter
+  document.addEventListener('keydown', (event) => {
+    if (event.ctrlKey && event.key === 'Enter') {
+      runQuery();
+    }
+  });
+
+  await runQuery();
+});
+
+////////////////////////  R module  ///////////////////////
+document.addEventListener('DOMContentLoaded', async () => {
+  const RRepl = await import('./components/RRepl.js');
+  // error message for R
+  app.rError = new ErrorMessage('#r-status', 'rError');
+  // Prepare R evaluation area
+  app.rEditor = new CodeEditor("#r-editor", {
+      mode: 'text/x-rsrc',
+      stateKey: 'rCode',
+      extraKeys: {
+        'Ctrl-Enter': () => evalR()
+      },
+    overrides: { lineNumbers: false }
+  });
+
+  // Initialize R environment
+  const outputElem = 'r-output';
+  app.repl = await RRepl.default.initialize(outputElem);
+  async function evalR() {
+    const { rCode, result } = state.getState();
+    const res = await app.repl.eval(rCode, result);
+    if (res.error) {
+      state.setState({ rError: res.error });
+    } else {
+      state.setState({ rError: '', rOutput: res.svg });
+      document.getElementById(outputElem).innerHTML = res.svg;
+    }
+  }
+  // 'Execute R' button
+  // document.getElementById('execute-r').addEventListener('click', async (e) => {await evalR();});
+
+  // evaluate R when sql state changes
+  state.subscribe((newState, updates) => {
+    if (newState.sqlError) { return; }
+    if ('viewsize' in updates) {
+      app.rEditor.refresh();
+    }
+    evalR();
+  }, ['result', 'viewsize']);
+
+  // Initial query to populate table based on URL/state
+  await evalR();
+});
+
+////////////////////////  Window Resizing, Global Buttons, etc.   ///////////////////////
+document.addEventListener('DOMContentLoaded', () => {
+  state.subscribe((newState, updates) => {
+    // don't save when there are errors is empty
+    if (newState.sqlError || newState.rError) { return; }
+    if ('result' in updates || 'rOutput' in updates) {
+      state.saveState();
+    }
   }, ['result', 'rOutput']);
 
   // button for sharing url
@@ -52,109 +160,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // clear all styles set in the meantime
     elem.removeAttr("style");
+    state.setState({ viewsize: window.innerWidth });
   });
 
   // grid resize drag handler
-  app.resizeHandle = new ResizeHandle('.splitview', '#grid-resize');
-});
-
-
-//////////////////////// SQL Editor  ///////////////////////
-document.addEventListener('DOMContentLoaded', async () => {
-  // Run query based on current state.sqlQuery
-  async function runQuery() {
-    state.setState({ sqlError: '' });
-    const query = state.getState().sqlQuery;
-    let result;
-    try {
-      result = await app.db.query(query);
-    } catch (err) {
-      result = { error: err.toString() };
-    }
-    if (result.error) {
-      state.setState({ result: { columns: [], rows: [], query }, sqlError: result.error });
-    } else {
-      state.setState({ result: { columns: result.columns, rows: result.rows, query }, sqlError: '' });
-    }
-  }
-
-  // SQL Code Editor
-  app.sqlEditor = new CodeEditor('#sql-editor', {
-    mode: 'text/x-sql',
-    stateKey: 'sqlQuery',
-    extraKeys: {
-      'Ctrl-Enter': runQuery
-    }
-  });
-  // error message for SQL
-  app.sqlError = new ErrorMessage('#sql-status', 'sqlError');
-
-  // Initialize database and result table
-  app.db = await DB.create();
-  app.resultTable = new ResultTable('#sql-output');
-
-  // Handle state updates for query results
-  state.subscribe((newState, updates) => {
-    const { columns, rows, query } = newState.result;
-    app.resultTable.render(columns, rows, query);
-    if (window.rmodule) {
-      window.rmodule.onDataUpdate({ columns, rows });
-    }
-  }, ['result']);
-
-  // Load table button
-  document.getElementById('load-table').addEventListener('click', async (e) => {
-    e.preventDefault();
-    await runQuery();
+  app.resizeHandle = new ResizeHandle('.splitview', '#grid-resize', (pct) => {
+    state.setState({ viewsize: window.innerWidth * pct } );
   });
 
-  // Fallback Ctrl+Enter
-  document.addEventListener('keydown', (event) => {
-    if (event.ctrlKey && event.key === 'Enter') {
-      runQuery();
-    }
+  // public resize event on window resize as well
+  window.addEventListener('resize', () => {
+    state.setState({ viewsize: window.innerWidth })
   });
-
-  await runQuery();
-});
-
-//////////////////////// R module  ///////////////////////
-document.addEventListener('DOMContentLoaded', async () => {
-  const RRepl = await import('./components/RRepl.js');
-  // error message for R
-  app.rError = new ErrorMessage('#r-status', 'rError');
-  // Prepare R evaluation area
-  app.rEditor = new CodeEditor("#r-editor", {
-      mode: 'text/x-rsrc',
-      stateKey: 'rCode',
-      extraKeys: {
-        'Ctrl-Enter': () => evalR()
-      },
-    overrides: { lineNumbers: false }
-  });
-
-  // Initialize R environment
-  const outputElem = 'r-output';
-  app.repl = await RRepl.default.initialize(outputElem);
-  async function evalR() {
-    const { rCode, result } = state.getState();
-    const res = await app.repl.eval(rCode, result);
-    if (res.error) {
-      state.setState({ rError: res.error });
-    } else {
-      state.setState({ rError: '', rOutput: res.svg });
-      document.getElementById(outputElem).innerHTML = res.svg;
-    }
-  }
-  // 'Execute R' button
-  // document.getElementById('execute-r').addEventListener('click', async (e) => {await evalR();});
-
-  // evaluate R when sql state changes
-  state.subscribe((newState, updates) => {
-    if (newState.sqlError) { return; }
-    evalR();
-  }, ['result']);
-
-  // Initial query to populate table based on URL/state
-  await evalR();
 });

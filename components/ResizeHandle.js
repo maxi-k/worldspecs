@@ -2,12 +2,14 @@ import '/splitview.css'
 import '/tableview.css'
 
 export default class ResizeHandle {
-  #isResizing; #grid; #handle; #handlers;
+  #isResizing; #grid; #handle; #handlers; #callback; #curPct;
 
-  constructor(grid, handle) {
+  constructor(grid, handle, resizedCallback = (pct) => {}) {
     this.#grid = grid;
     this.#handle = handle;
     this.#isResizing = false;
+    this.#callback = resizedCallback;
+    this.#curPct = 0;
     this.#handlers = {move: this.pointerMove.bind(this),
                       up: this.pointerUp.bind(this),
                       down: this.pointerDown.bind(this) };
@@ -25,6 +27,7 @@ export default class ResizeHandle {
     evt.preventDefault();
     const grid = $(this.#grid)[0];
     const pct = 100 * (evt.clientX / grid.clientWidth);
+    this.#curPct = pct;
     grid.style["grid-template-columns"] = `calc(${pct}% - 3px) 6px calc(${100-pct}% - 3px)`;
   };
 
@@ -32,5 +35,6 @@ export default class ResizeHandle {
     removeEventListener("pointermove", this.#handlers.move);
     removeEventListener("pointerup", this.#handlers.up);
     this.#isResizing = false;
+    this.#callback(this.#curPct);
   };
 }

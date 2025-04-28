@@ -40,4 +40,9 @@ export default class CodeEditor {
       }
     }, [stateKey]);
   }
+
+  refresh() {
+    this.editor.refresh();
+    console.log('refreshing editor');
+  }
 }
