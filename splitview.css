@@ -2,8 +2,9 @@
     display: grid;
     grid-template-areas:
         "header-lhs grid-resize header-rhs"
-        "sql-eval   grid-resize r-eval";
-        /*  "sql-output grid-resize r-output"; */
+        "sql-eval   grid-resize r-eval"
+        /*  "sql-output grid-resize r-output" */
+        "footer footer footer";
 
     grid-template-columns: calc(50% - 3px) 6px calc(50% - 3px);
 
@@ -14,12 +15,7 @@
     }
 
     .header-segment {
-        display: flex;
         justify-content: space-between;
-        align-items: center;
-        padding: 1em .5em 1em .5em;
-        background-color: #f8f8f8;
-        border-bottom: 1px solid #ccc;
     }
 
     .header-segment .title {
@@ -33,14 +29,14 @@
 
     #r-eval {
         grid-area: r-eval;
-        padding-bottom: 1em;
-        border-bottom: 1px solid #ccc;
     }
 
     #sql-eval {
         grid-area: sql-eval;
-        padding-bottom: 1em;
-        border-bottom: 1px solid #ccc;
+    }
+
+    footer {
+        grid-area: footer;
     }
 
     /*#sql-output_wrapper {grid-area: sql-output;}*/

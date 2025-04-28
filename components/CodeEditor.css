@@ -1,0 +1,15 @@
+.CodeMirror {
+  min-height: 15vh;
+  max-height: 50vh;
+  height: 20vh;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  line-height: 1.4;
+  resize: vertical;
+  /* Ensures text is properly aligned */
+}
+
+.CodeMirror-scroll {
+  padding: 0 !important;
+  /* Removes any extra spacing */
+}

@@ -1,5 +1,6 @@
 // For rendering EC2 Table
 import 'datatables.net-responsive-dt';
+import './ResultTable.css'
 /// XXX replace cdn with js modules and bundle using vite
 
 export default class ResultTable {
@@ -17,26 +18,27 @@ export default class ResultTable {
     }
     let mappedCols = columns.map(key => ({ title: key, data: row => row[key] }));
     let res = elem.empty().DataTable({
-        data: rows,
-        columns: mappedCols,
-        ordering: false,
-        scrollX: true, // issue with too few columns
-        // dom: '<"top-toolbar d-flex justify-content-between align-items-center"lBf>rtip',
-        dom: '<"top-toolbar d-flex justify-content-between align-items-center"iBf>rt<"bottom-toolbar d-flex justify-content-between align-items-center"lp><"clear">',
-        buttons: [
-            {
-                extend: 'csv',
-                filename: 'ec2_instances_data',
-                text: 'Export Result [CSV]'
-            },
-            {
-                extend: 'excel',
-                filename: 'ec2_instances_data',
-                text: 'Export Result [XLS]'
-            }
-        ],
-        pageLength: 100, // default row count
-        lengthMenu: [10, 25, 50, 100, 200, 1000]
+      data: rows,
+      columns: mappedCols,
+      ordering: false,
+      scrollX: true,
+      scrollCollapse: true,
+      // dom: '<"top-toolbar d-flex justify-content-between align-items-center"lBf>rtip',
+      dom: '<"top-toolbar d-flex justify-content-between align-items-center"iBf>rt<"bottom-toolbar d-flex justify-content-between align-items-center"lp><"clear">',
+      buttons: [
+        {
+          extend: 'csv',
+          filename: 'ec2_instances_data',
+          text: 'Export Result [CSV]'
+        },
+        {
+          extend: 'excel',
+          filename: 'ec2_instances_data',
+          text: 'Export Result [XLS]'
+        }
+      ],
+      pageLength: 100, // default row count
+      lengthMenu: [10, 25, 50, 100, 200, 1000]
     });
   }
 

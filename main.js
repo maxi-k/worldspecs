@@ -133,10 +133,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }).catch(err => console.error("Failed to copy: ", err));
   });
 
-  // button for downloading full duckdb
-  $('#download-btn').click(() => {
-    const base = window.location.origin + window.location.pathname;
-    window.location.href = `${base}/static/cloudspecs.duckdb`; // Target URL
+  // button for downloading svg
+  $('#svg-dl-btn').click(() => {
+    const svgData = state.getState().rOutput;
+    const blob = new Blob([svgData], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    // download
+    window.open(url, '_blank');
   });
 
   // button for resetting page
@@ -150,10 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let elem = $('#app');
     if (elem.hasClass('splitview')) {
       elem.removeClass('splitview').addClass('tableview');
-      $('#toggle-viz-btn').text('Visualize');
+      $('#toggle-viz-btn').html('&#9664; Visualize');
     } else {
       elem.removeClass('tableview').addClass('splitview');
-      $('#toggle-viz-btn').text('Table only');
+      $('#toggle-viz-btn').html('Table only &#9654;');
     }
     // clear all styles set in the meantime
     elem.removeAttr("style");

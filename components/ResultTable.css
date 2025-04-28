@@ -1,0 +1,38 @@
+table {
+  width: 100%;
+  min-width: 100%;
+  min-width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+}
+
+th,
+td,
+thead {
+  border: 1px solid black;
+  padding: 8px;
+  text-align: right !important;
+}
+
+.dt-buttons {
+  margin-left: 10px;
+  /* Adds spacing between elements */
+  margin-top: 10px;
+}
+
+.dataTables_length {
+  margin-right: auto;
+  /* Pushes to the left */
+}
+
+.dataTables_filter {
+  margin-left: auto;
+  /* Pushes to the right */
+}
+
+.top-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}

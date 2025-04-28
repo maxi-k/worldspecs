@@ -1,4 +1,5 @@
 import state from './state.js';
+import './CodeEditor.css'
 
 /**
  * CodeEditor component wraps a CodeMirror instance and syncs its content with central state
