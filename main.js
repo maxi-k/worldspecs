@@ -148,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const url = URL.createObjectURL(blob);
     // download
     window.open(url, '_blank');
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
   // button for resetting page
