@@ -1,6 +1,6 @@
 [
     {
-        "description": "database schema",
+        "description": "Schema (mainline instances)",
         "sql_code": [
             "SELECT a.table_name, a.column_name AS name, d.column_type AS type, a.comment AS description",
             "FROM duckdb_columns() a JOIN (describe aws) d ON d.column_name = a.column_name",
@@ -9,11 +9,11 @@
         "r_code": ""
     },
     {
-        "description": "cores per dollar",
+        "description": "Cores per $",
         "sql_code": [
             "SELECT release_year, arch,",
-            "    max(cores/price_hour) cores_per_usd,",
-            "    arg_max(instance, cores/price_hour) best_instance",
+            "       max(cores/price_hour) cores_per_usd,",
+            "       arg_max(instance, cores/price_hour) best_instance",
             "FROM aws",
             "GROUP BY release_year, arch",
             "ORDER BY cores_per_usd DESC"
@@ -24,14 +24,35 @@
             "",
             "### the current table is bound to the variable 'df'",
             "output <- ggplot(df, aes(x = release_year, y = cores_per_usd, colour = arch)) +",
-            "    geom_text(aes(label = best_instance)) +",
-            "    theme(legend.position = 'bottom')",
-            "## output to the html page",
-            "plot(output); dev.off(); to_svg()"
+            "    geom_text(aes(label = best_instance))",
+            "",
+            "plot(output); dev.off(); to_svg() # output to html page"
         ]
     },
     {
-        "description": "highest net bandwidth per dollar",
+        "description": "CPU performance (SPECint) per $",
+        "sql_code": [
+            "select value as specint, release_year, price_hour, family, instance,",
+            "       case when processor_model like '%AMD%' then 'AMD' when arch = 'arm64' then 'Graviton' else 'Intel' end as Vendor",
+            "from aws_all join (FROM benchmark where benchmark = 'specint_full_peak') using (instance)",
+            "order by specint/price_hour desc"
+        ],
+        "r_code": [
+            "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
+            "theme_set(theme_bw())",
+            "",
+            "output <- ggplot(df, aes(x = release_year, y = specint/price_hour, colour = Vendor, group = Vendor)) +",
+            "    scale_x_continuous(limits=c(2014,2025)) +",
+            "    geom_line() +",
+            "    geom_label(aes(label = instance)) +",
+            "    ggtitle('CPU Performance (multi-threaded SPECint) per $') +",
+            "    expand_limits(y=0)",
+            "",
+            "plot(output); dev.off(); to_svg() # output to html page"
+        ]
+    },
+    {
+        "description": "Network bandwidth per $",
         "sql_code": [
             "SELECT family, round(max(net_gbitps/price_hour), 2) net_gbitps_per_dollar",
             "FROM aws",
@@ -39,5 +60,25 @@
             "ORDER BY net_gbitps_per_dollar DESC"
         ],
         "r_code": ""
+    },
+    {
+        "description": "SSD instance storage capacity per $",
+        "sql_code": [
+            "select *",
+            "from aws_family",
+            "where storage_is_ssd"
+        ],
+        "r_code": [
+            "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
+            "theme_set(theme_bw())",
+            "",
+            "output <- ggplot(df, aes(x = release_year, y = storage_gb/price_hour, label=family, color=category)) +",
+            "    geom_text() +",
+            "    scale_y_continuous('GB/$/hour') +",
+            "    ggtitle('SSD Instance Storage Capacity per $') +",
+            "    expand_limits(y=0)",
+            "",
+            "plot(output); dev.off(); to_svg() # output to html page"
+        ]
     }
 ]
