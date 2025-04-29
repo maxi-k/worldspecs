@@ -60,23 +60,12 @@ footer {
   justify-content: space-between;
   background-color: var(--grey-bg);
   width: 100%;
-  padding: .7em .5em;
+  padding: .7em .7em;
 }
 
 footer a {
   text-decoration: none;
 }
-
-footer a + a {
-  margin-left: .5em;
-}
-
-footer a + a::before {
-  color: black;
-  content: "|";
-  margin-right: .5em;
-}
-
 
 main {
   overflow: auto;
@@ -147,4 +136,14 @@ main {
 .toast.show {
   visibility: visible;
   opacity: 1;
+}
+
+.linklist a + a {
+  margin-left: .5em;
+}
+
+.linklist a + a::before {
+  color: black;
+  content: "|";
+  margin-right: .5em;
 }
