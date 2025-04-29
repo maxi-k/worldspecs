@@ -6,6 +6,7 @@ import DB from './components/db.js';
 import ResultTable from './components/ResultTable.js';
 import ErrorMessage from './components/ErrorMessage.js';
 import ResizeHandle from './components/ResizeHandle.js';
+import SAMPLE_QUERIES from './static/sample-queries.json';
 
 const showToast = (message) => {
     const toast = $("#toast").text(message).addClass("show");
@@ -22,24 +23,23 @@ const debounce = (callback, delay_ms) => {
 
 const app = {};
 ////////////////////////  SQL Editor  ///////////////////////
-document.addEventListener('DOMContentLoaded', async () => {
-  // Run query based on current state.sqlQuery
-  async function runQuery() {
-    state.setState({ sqlError: '' });
-    const query = state.getState().sqlQuery;
-    let result;
-    try {
-      result = await app.db.query(query);
-    } catch (err) {
-      result = { error: err.toString() };
-    }
-    if (result.error) {
-      state.setState({ result: { columns: [], rows: [], query }, sqlError: result.error });
-    } else {
-      state.setState({ result: { columns: result.columns, rows: result.rows, query }, sqlError: '' });
-    }
+// Run query based on current state.sqlQuery
+async function runQuery() {
+  state.setState({ sqlError: '' });
+  const query = state.getState().sqlQuery;
+  let result;
+  try {
+    result = await app.db.query(query);
+  } catch (err) {
+    result = { error: err.toString() };
   }
-
+  if (result.error) {
+    state.setState({ result: { columns: [], rows: [], query }, sqlError: result.error });
+  } else {
+    state.setState({ result: { columns: result.columns, rows: result.rows, query }, sqlError: '' });
+  }
+}
+document.addEventListener('DOMContentLoaded', async () => {
   // SQL Code Editor
   app.sqlEditor = new CodeEditor('#sql-editor', {
     mode: 'text/x-sql',
@@ -171,6 +171,44 @@ document.addEventListener('DOMContentLoaded', () => {
     elem.removeAttr("style");
     state.setState({ viewsize: window.innerWidth });
   });
+
+  // parse sample queries
+  const samplesTable = {};
+  SAMPLE_QUERIES.forEach(item => {
+    let sqlProcessed = item.sql_code;
+    let rProcessed = item.r_code;
+
+    if (Array.isArray(sqlProcessed)) {
+      sqlProcessed = sqlProcessed.join('\n');
+    }
+    if (Array.isArray(rProcessed)) {
+      rProcessed = rProcessed.join('\n');
+    }
+
+    samplesTable[item.description] = {
+      sql_code: sqlProcessed,
+      r_code: rProcessed
+    };
+  });
+
+  const $dropdown = $('#sample-queries');
+  for (const description in samplesTable) {
+    if (description) {
+      $dropdown.append(
+        $('<option></option>')
+          .attr('value', description)
+          .text(description)
+      );
+    }
+  }
+
+  $dropdown.on('change', () => {
+    const selectedDescription = $('#sample-queries :selected').val();
+    const data = samplesTable[selectedDescription];
+    if (data) {
+      state.setState({ sqlQuery: data.sql_code, rCode: data.r_code});
+      runQuery();
+  }});
 
   // grid resize drag handler
   app.resizeHandle = new ResizeHandle('.splitview', '#grid-resize', (pct) => {
