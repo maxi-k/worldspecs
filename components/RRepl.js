@@ -27,6 +27,18 @@ export default class RRepl {
     }
   }
 
+  minimalRCode() {
+    return `to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)
+theme_set(theme_bw())
+
+### the current table is bound to the variable 'df'
+output <- ggplot(df, aes()) +
+  annotate(geom = 'text', x = 0, y = 0, label = 'Plot something!')
+
+## output to the html page
+plot(output); dev.off(); to_svg()`
+  }
+
   // private methods
 
   static async #initializeWebR() {

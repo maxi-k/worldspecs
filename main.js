@@ -158,7 +158,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     samplesTable[item.description] = {
       sql_code: sqlProcessed,
-      r_code: rProcessed
+      r_code: rProcessed,
+      layout: item.layout || (!!rProcessed ? 'split' : 'table')
     };
   });
 
@@ -176,10 +177,16 @@ document.addEventListener('DOMContentLoaded', () => {
   $dropdown.on('change', () => {
     const selectedDescription = $('#sample-queries :selected').val();
     const data = samplesTable[selectedDescription];
-    if (data) {
-      state.setState({ sqlQuery: data.sql_code, rCode: data.r_code});
-      runQuery();
-  }});
+    if (!data) { return; }
+    const updates = { sqlQuery: data.sql_code, rCode: data.r_code, layout: { type: data.layout } };
+    if (!data.r_code && 'repl' in app) {
+      updates.rCode = app.repl.minimalRCode();
+      updates.layout = updates.layout || { type: 'table' };
+    }
+    console.log(data);
+    state.setState(updates);
+    runQuery();
+  });
 
   // grid resize drag handler
   app.resizeHandle = new ResizeHandle('#app', '#grid-resize', '#toggle-viz-btn');
