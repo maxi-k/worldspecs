@@ -5,11 +5,10 @@
 import LZString from 'lz-string';
 const encodeForURI = (str) => LZString.compressToEncodedURIComponent(str);
 const decodeFromURI = (str) => {
-  console.log(LZString);
   try {
     return LZString.decompressFromEncodedURIComponent(str);
   } catch (e){
-    console.error('Error decoding base64 string', e);
+    console.error('Error decoding URI string', e);
     return '';
   }
 }
@@ -20,7 +19,7 @@ const getQueryParam = (name) => {
 }
 
 const STATE_PARAM = 'state';
-const URL_ENCODED_KEYS = ['sqlQuery', 'rCode'];
+const URL_ENCODED_KEYS = ['sqlQuery', 'rCode', 'layout'];
 // Default state values
 const defaultState = {
   // default SQL query to run
@@ -51,6 +50,7 @@ let state = (() => {
     try {
       const decoded = decodeFromURI(encoded);
       const parsed = JSON.parse(decoded);
+      // console.log('decoded state ', parsed);
       if (Object.keys(parsed).length == URL_ENCODED_KEYS.length
           && URL_ENCODED_KEYS.every(key => parsed.hasOwnProperty(key))) {
         return { ...defaultState, ...parsed };
@@ -79,7 +79,7 @@ const getState = () => ({ ...state });
 
 // Merge updates into state, notify subscribers, and sync URL
 const setState = (updates) => {
-  console.log('updating state with ', updates);
+  // console.log('updating state with ', updates);
   state = { ...state, ...updates };
   const snapshot = getState();
   subscribers.forEach(cb => {

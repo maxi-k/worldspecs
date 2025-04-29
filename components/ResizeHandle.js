@@ -33,6 +33,9 @@ export default class ResizeHandle {
       const { type, percentage } = newState.layout;
       this.render(type, percentage);
     }, ['layout']);
+
+    const { type, percentage } = state.getState().layout;
+    this.render(type, percentage);
   }
 
   render(type, percentage) {
