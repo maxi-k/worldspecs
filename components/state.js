@@ -2,11 +2,14 @@
 // Provides subscribe, getState, setState, and syncs state with URL
 
 // Helper functions for Base64 encoding/decoding of URI components
-const base64Encode = (str) => btoa(encodeURIComponent(str));
-const base64Decode = (str) => {
+import LZString from 'lz-string';
+const encodeForURI = (str) => LZString.compressToEncodedURIComponent(str);
+const decodeFromURI = (str) => {
+  console.log(LZString);
   try {
-    return decodeURIComponent(atob(str));
-  } catch {
+    return LZString.decompressFromEncodedURIComponent(str);
+  } catch (e){
+    console.error('Error decoding base64 string', e);
     return '';
   }
 }
@@ -45,7 +48,8 @@ let state = (() => {
   const encoded = getQueryParam(STATE_PARAM);
   if (!!encoded) {
     try {
-      const parsed = JSON.parse(base64Decode(encoded));
+      const decoded = decodeFromURI(encoded);
+      const parsed = JSON.parse(decoded);
       if (Object.keys(parsed).length == URL_ENCODED_KEYS.length
           && URL_ENCODED_KEYS.every(key => parsed.hasOwnProperty(key))) {
         return { ...defaultState, ...parsed };
@@ -88,13 +92,9 @@ const setState = (updates) => {
 
 const saveState = () => {
   // update URL without reloading only encode specific keys
-  const newEncoded = base64Encode(
-    JSON.stringify(
-      Object.fromEntries(
-        Object.entries(state).filter(([key]) => URL_ENCODED_KEYS.includes(key))
-      )
-    )
-  );
+  const toEncode = Object.fromEntries(Object.entries(state).filter(([key]) => URL_ENCODED_KEYS.includes(key)));
+  const newEncoded = encodeForURI(JSON.stringify(toEncode));
+  // console.log('encoding ', newEncoded.length, ' bytes');
   const newUrl = window.location.origin + window.location.pathname + '?' + STATE_PARAM + '=' + newEncoded;
   window.history.replaceState(null, '', newUrl);
   // window.history.pushState(null, '', newUrl);
