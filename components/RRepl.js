@@ -15,10 +15,12 @@ export default class RRepl {
     return res;
   }
 
-  async eval(rCode, table) {
+  async eval(rCode, table, viewOnly = false) {
     try {
       await this.onScreenUpdate();
-      await this.onDataUpdate(table);
+      if (!viewOnly) {
+        await this.onDataUpdate(table);
+      }
       return await this.#recreatePlot(rCode);
     } catch (e) {
       return { error: e }

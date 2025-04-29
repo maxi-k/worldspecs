@@ -7,19 +7,7 @@ import ResultTable from './components/ResultTable.js';
 import ErrorMessage from './components/ErrorMessage.js';
 import ResizeHandle from './components/ResizeHandle.js';
 import SAMPLE_QUERIES from './static/sample-queries.json';
-
-const showToast = (message) => {
-    const toast = $("#toast").text(message).addClass("show");
-    setTimeout(() => { toast.removeClass("show"); }, 2000);
-}
-
-const debounce = (callback, delay_ms) => {
-  let id = null;
-  return (...args) => {
-    window.clearTimeout(id);
-    id = window.setTimeout(() => {callback(...args);}, delay_ms);
-  };
-}
+import { showToast } from '/util.js'
 
 const app = {};
 ////////////////////////  SQL Editor  ///////////////////////
@@ -39,6 +27,7 @@ async function runQuery() {
     state.setState({ result: { columns: result.columns, rows: result.rows, query }, sqlError: '' });
   }
 }
+
 document.addEventListener('DOMContentLoaded', async () => {
   // SQL Code Editor
   app.sqlEditor = new CodeEditor('#sql-editor', {
@@ -58,10 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   state.subscribe((newState, updates) => {
     const { columns, rows, query } = newState.result;
     app.resultTable.render(columns, rows, query);
-    if (window.rmodule) {
-      window.rmodule.onDataUpdate({ columns, rows });
-    }
-  }, ['result', 'viewsize']);
+  }, ['result', 'viewsize', 'layout']);
 
   // Load table button
   document.getElementById('load-table').addEventListener('click', async (e) => {
@@ -96,9 +82,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize R environment
   const outputElem = 'r-output';
   app.repl = await RRepl.default.initialize(outputElem);
-  async function evalR() {
+  async function evalR(viewOnly = false) {
     const { rCode, result } = state.getState();
-    const res = await app.repl.eval(rCode, result);
+    const res = await app.repl.eval(rCode, result, viewOnly);
     if (res.error) {
       state.setState({ rError: res.error });
     } else {
@@ -112,11 +98,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // evaluate R when sql state changes
   state.subscribe((newState, updates) => {
     if (newState.sqlError) { return; }
-    if ('viewsize' in updates) {
+    if ('layout' in updates ) {
       app.rEditor.refresh();
     }
-    evalR();
-  }, ['result', 'viewsize']);
+    evalR(!('result' in updates) /* viewOnly */);
+  }, ['result', 'viewsize', 'layout']);
 
   // Initial query to populate table based on URL/state
   await evalR();
@@ -155,21 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#reset-btn').click((e) => {
     const newUrl = window.location.origin + window.location.pathname;
     window.location = newUrl;
-  });
-
-  // buttons for changing view type
-  $('#toggle-viz-btn').click((e) => {
-    let elem = $('#app');
-    if (elem.hasClass('splitview')) {
-      elem.removeClass('splitview').addClass('tableview');
-      $('#toggle-viz-btn').html('&#9664; Visualize (R+ggplot)');
-    } else {
-      elem.removeClass('tableview').addClass('splitview');
-      $('#toggle-viz-btn').html('Table only &#9654;');
-    }
-    // clear all styles set in the meantime
-    elem.removeAttr("style");
-    state.setState({ viewsize: window.innerWidth });
   });
 
   // parse sample queries
@@ -211,11 +182,5 @@ document.addEventListener('DOMContentLoaded', () => {
   }});
 
   // grid resize drag handler
-  app.resizeHandle = new ResizeHandle('.splitview', '#grid-resize', (pct) => {
-    state.setState({ viewsize: window.innerWidth * pct } );
-  });
-
-  // public resize event on window resize as well
-  const resizeHandler = debounce(() => state.setState({ viewsize: window.innerWidth }), 500/*ms*/);
-  window.addEventListener('resize', resizeHandler);
+  app.resizeHandle = new ResizeHandle('#app', '#grid-resize', '#toggle-viz-btn');
 });

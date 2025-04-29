@@ -41,7 +41,8 @@ output <- ggplot(df, aes(x = release_year, y = cores_per_usd, colour = arch)) +
     geom_text(aes(label = best_instance)) +
     theme(legend.position = 'bottom')
 ## output to the html page
-plot(output); dev.off(); to_svg()`
+plot(output); dev.off(); to_svg()`,
+  layout: { type: 'table' }
 };
 
 let state = (() => {
@@ -78,7 +79,7 @@ const getState = () => ({ ...state });
 
 // Merge updates into state, notify subscribers, and sync URL
 const setState = (updates) => {
-  // console.log('updating state with ', updates);
+  console.log('updating state with ', updates);
   state = { ...state, ...updates };
   const snapshot = getState();
   subscribers.forEach(cb => {
