@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let elem = $('#app');
     if (elem.hasClass('splitview')) {
       elem.removeClass('splitview').addClass('tableview');
-      $('#toggle-viz-btn').html('&#9664; Visualize');
+      $('#toggle-viz-btn').html('&#9664; Visualize (R+ggplot)');
     } else {
       elem.removeClass('tableview').addClass('splitview');
       $('#toggle-viz-btn').html('Table only &#9654;');
