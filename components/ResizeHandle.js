@@ -1,6 +1,7 @@
 import './splitview.css'
 import './tableview.css'
 import { debounce } from '/util.js'
+import { toggleFavicon } from './favicons.js'
 import state from './state.js'
 
 export default class ResizeHandle {
@@ -79,11 +80,15 @@ export default class ResizeHandle {
 
   toggle(evt) {
     const { layout } = state.getState();
+    
+    let crackedMode = false;
     if (layout.type == 'table') {
       state.setState({ layout: { type: 'split', percentage: layout.percentage || 50 } });
+      crackedMode = true;
     } else {
       state.setState({ layout: { type: 'table' } });
     }
+    toggleFavicon(crackedMode);
   }
 
   static #applyGridWidth(grid, pct) {

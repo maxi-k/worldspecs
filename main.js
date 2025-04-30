@@ -6,6 +6,7 @@ import DB from './components/db.js';
 import ResultTable from './components/ResultTable.js';
 import ErrorMessage from './components/ErrorMessage.js';
 import ResizeHandle from './components/ResizeHandle.js';
+import { toggleFavicon } from './components/favicons.js'
 import SAMPLE_QUERIES from './static/sample-queries.json';
 import { showToast } from '/util.js'
 
@@ -185,6 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     console.log(data);
     state.setState(updates);
+    toggleFavicon(false); // Using sample queries is not cracked
     runQuery();
   });
 
