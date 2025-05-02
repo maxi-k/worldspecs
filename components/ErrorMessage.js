@@ -1,4 +1,5 @@
 import state from './state.js';
+import LoadingBar from './LoadingBar.svg?raw'
 
 export default class ErrorMessage {
   #selector; #stateKey;
@@ -15,6 +16,10 @@ export default class ErrorMessage {
   }
 
   render(message) {
-    $(this.#selector).text(message);
+    if (message === 'loading') {
+      $(this.#selector).html(LoadingBar);
+    } else {
+      $(this.#selector).text(message);
+    }
   }
 }

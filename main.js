@@ -14,7 +14,7 @@ const app = {};
 ////////////////////////  SQL Editor  ///////////////////////
 // Run query based on current state.sqlQuery
 async function runQuery() {
-  state.setState({ sqlError: '' });
+  state.setState({ sqlError: 'loading' });
   const query = state.getState().sqlQuery;
   let result;
   try {
@@ -84,6 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const outputElem = 'r-output';
   app.repl = await RRepl.default.initialize(outputElem);
   async function evalR(viewOnly = false) {
+    state.setState({ rError: 'loading' });
     const { rCode, result } = state.getState();
     const res = await app.repl.eval(rCode, result, viewOnly);
     if (res.error) {
@@ -99,10 +100,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // evaluate R when sql state changes
   state.subscribe((newState, updates) => {
     if (newState.sqlError) { return; }
-    if ('layout' in updates ) {
+    if ('layout' in updates) {
       app.rEditor.refresh();
     }
-    evalR(!('result' in updates) /* viewOnly */);
+    if (!('runningQuery' in updates)) {
+      evalR(!('result' in updates) /* viewOnly */);
+    }
   }, ['result', 'viewsize', 'layout']);
 
   // Initial query to populate table based on URL/state
@@ -179,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedDescription = $('#sample-queries :selected').val();
     const data = samplesTable[selectedDescription];
     if (!data) { return; }
-    const updates = { sqlQuery: data.sql_code, rCode: data.r_code, layout: { type: data.layout } };
+    const updates = { sqlQuery: data.sql_code, rCode: data.r_code, layout: { type: data.layout }, runningQuery: true };
     if (!data.r_code && 'repl' in app) {
       updates.rCode = app.repl.minimalRCode();
       updates.layout = updates.layout || { type: 'table' };

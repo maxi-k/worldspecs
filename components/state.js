@@ -41,6 +41,8 @@ output <- ggplot(df, aes(x = release_year, y = cores_per_usd, colour = arch)) +
     theme(legend.position = 'bottom')
 ## output to the html page
 plot(output); dev.off(); to_svg()`,
+  sqlError: 'loading',
+  rError: 'loading',
   layout: { type: 'table' }
 };
 

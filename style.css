@@ -108,6 +108,8 @@ main {
 
 .error-msg {
   color: red;
+  height: 2em;
+  padding: .5em;
 }
 
 .toast {
