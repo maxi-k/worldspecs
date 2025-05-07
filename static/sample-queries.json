@@ -1,12 +1,54 @@
 [
     {
-        "description": "Schema (mainline instances)",
+        "description": "Mainline instances",
+        "sql_code": [
+            "SELECT * FROM aws"
+        ],
+        "r_code": ""
+    },
+    {
+        "description": "Column Info",
         "sql_code": [
             "SELECT a.table_name, a.column_name AS name, d.column_type AS type, a.comment AS description",
             "FROM duckdb_columns() a JOIN (describe aws) d ON d.column_name = a.column_name",
-            "WHERE a.table_name ILIKE 'aws'"
+            "WHERE a.table_name = 'aws'"
         ],
         "r_code": ""
+    },
+    {
+        "description": "Instance families: RAM vs CPU Cores",
+        "sql_code": [
+            "SELECT * FROM aws_family"
+        ],
+        "r_code": [
+            "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
+            "",
+            "output <- ggplot(df, aes(x = ram_gib/price_hour, y = cores/price_hour, colour = category, group = category, label = family)) +",
+            "    geom_text() +",
+            "    ggtitle('Instance families: RAM vs CPU Cores') +",
+            "    expand_limits(y=0) +",
+            "    theme_bw()",
+            "",
+            "plot(output); dev.off(); to_svg() # output to html page"
+        ]
+    },
+    {
+        "description": "RAM capacity trend",
+        "sql_code": [
+            "SELECT * FROM aws_family"
+        ],
+        "r_code": [
+            "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
+            "",
+            "output <- ggplot(df, aes(x = release_year, y = ram_gib/price_hour, label=family, color=category)) +",
+            "    geom_text() +",
+            "    scale_y_continuous('GiB/$/hour') +",
+            "    ggtitle('RAM capacity trend') +",
+            "    expand_limits(y=0) +",
+            "    theme_bw()",
+            "",
+            "plot(output); dev.off(); to_svg() # output to html page"
+        ]
     },
     {
         "description": "Cores per $",
@@ -20,11 +62,11 @@
         ],
         "r_code": [
             "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
-            "theme_set(theme_bw())",
             "",
             "### the current table is bound to the variable 'df'",
             "output <- ggplot(df, aes(x = release_year, y = cores_per_usd, colour = arch)) +",
-            "    geom_text(aes(label = best_instance))",
+            "    geom_text(aes(label = best_instance)) +",
+            "    theme_bw()",
             "",
             "plot(output); dev.off(); to_svg() # output to html page"
         ]
@@ -32,21 +74,21 @@
     {
         "description": "CPU performance (SPECint) per $",
         "sql_code": [
-            "select value as specint, release_year, price_hour, family, instance,",
+            "SELECT value as specint, release_year, price_hour, family, instance,",
             "       case when processor_model like '%AMD%' then 'AMD' when arch = 'arm64' then 'Graviton' else 'Intel' end as Vendor",
-            "from aws_all join (FROM benchmark where benchmark = 'specint_full_peak') using (instance)",
+            "FROM aws_all join (FROM benchmark WHERE benchmark = 'specint_full_peak') using (instance)",
             "order by specint/price_hour desc"
         ],
         "r_code": [
             "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
-            "theme_set(theme_bw())",
             "",
             "output <- ggplot(df, aes(x = release_year, y = specint/price_hour, colour = Vendor, group = Vendor)) +",
             "    scale_x_continuous(limits=c(2014,2025)) +",
             "    geom_line() +",
             "    geom_label(aes(label = instance)) +",
             "    ggtitle('CPU Performance (multi-threaded SPECint) per $') +",
-            "    expand_limits(y=0)",
+            "    expand_limits(y=0) +",
+            "    theme_bw()",
             "",
             "plot(output); dev.off(); to_svg() # output to html page"
         ]
@@ -62,23 +104,41 @@
         "r_code": ""
     },
     {
-        "description": "SSD instance storage capacity per $",
+        "description": "SSD instance storage capacity trend",
         "sql_code": [
-            "select *",
-            "from aws_family",
-            "where storage_is_ssd"
+            "SELECT *",
+            "FROM aws_family",
+            "WHERE storage_is_ssd"
         ],
         "r_code": [
             "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
-            "theme_set(theme_bw())",
             "",
             "output <- ggplot(df, aes(x = release_year, y = storage_gb/price_hour, label=family, color=category)) +",
             "    geom_text() +",
             "    scale_y_continuous('GB/$/hour') +",
             "    ggtitle('SSD Instance Storage Capacity per $') +",
-            "    expand_limits(y=0)",
+            "    expand_limits(y=0) +",
+            "    theme_bw()",
             "",
             "plot(output); dev.off(); to_svg() # output to html page"
         ]
+    },
+    {
+        "description": "Instance SSD storage: capacity vs IOPS",
+        "sql_code": [
+            "SELECT *",
+            "FROM aws_family",
+            "WHERE storage_is_ssd"
+        ],
+        "r_code": [
+            "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
+            "",
+            "### the current table is bound to the variable 'df'",
+            "output <- ggplot(df, aes(x=storage_gb/price_hour, y=storage_read_iops/price_hour, label=family, color=arch)) +",
+            "    ggtitle('Instance SSDs: Capacity/$ vs IOPS/$') +",
+            "    geom_text() +",
+            "    theme_bw()",
+            "",
+            "plot(output); dev.off(); to_svg() ## output to the html page"        ]
     }
 ]
