@@ -94,14 +94,22 @@
         ]
     },
     {
-        "description": "Network bandwidth per $",
+        "description": "Network bandwidth trend",
         "sql_code": [
-            "SELECT family, round(max(net_gbitps/price_hour), 2) net_gbitps_per_dollar",
-            "FROM aws",
-            "GROUP BY family",
-            "ORDER BY net_gbitps_per_dollar DESC"
+            "SELECT *",
+            "FROM aws_family"
         ],
-        "r_code": ""
+        "r_code": [
+            "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
+            "",
+            "### the current table is bound to the variable 'df'",
+            "output <- ggplot(df, aes(x=release_year, net_gbitps/price_hour, label=paste(family, net_gbitps, 'Gbit/s'), color=arch)) +",
+            "    geom_text() +",
+            "    ggtitle('Network bandwidth trend') +",
+            "    theme_bw()",
+            "",
+            "plot(output); dev.off(); to_svg() # output to the html page"
+        ]
     },
     {
         "description": "SSD instance storage capacity trend",
@@ -139,6 +147,6 @@
             "    geom_text() +",
             "    theme_bw()",
             "",
-            "plot(output); dev.off(); to_svg() ## output to the html page"        ]
+            "plot(output); dev.off(); to_svg() # output to the html page"        ]
     }
 ]
