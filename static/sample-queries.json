@@ -1,12 +1,5 @@
 [
     {
-        "description": "Mainline instances",
-        "sql_code": [
-            "SELECT * FROM aws"
-        ],
-        "r_code": ""
-    },
-    {
         "description": "Column Info",
         "sql_code": [
             "SELECT a.table_name, a.column_name AS name, d.column_type AS type, a.comment AS description",

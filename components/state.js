@@ -24,23 +24,18 @@ const URL_ENCODED_KEYS = ['sqlQuery', 'rCode', 'layout'];
 const defaultState = {
   // default SQL query to run
   sqlQuery: //
-`SELECT release_year, arch,
-       max(cores/price_hour) cores_per_usd,
-       arg_max(instance, cores/price_hour) best_instance
+`SELECT *
 FROM aws
-GROUP BY release_year, arch
-ORDER BY cores_per_usd DESC`,
+`,
   // initial R code to run
   rCode: //
-`to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)
-theme_set(theme_bw())
+    `to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)
 
 ### the current table is bound to the variable 'df'
-output <- ggplot(df, aes(x = release_year, y = cores_per_usd, colour = arch)) +
-    geom_text(aes(label = best_instance)) +
-    theme(legend.position = 'bottom')
-## output to the html page
-plot(output); dev.off(); to_svg()`,
+output <- ggplot(df, aes()) +
+  annotate(geom = 'text', x = 0, y = 0, label = 'Plot something!')
+
+plot(output); dev.off(); to_svg() # output to the html page`,
   sqlError: 'loading',
   rError: 'loading',
   layout: { type: 'table' }
