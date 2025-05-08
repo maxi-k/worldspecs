@@ -89,16 +89,20 @@
     {
         "description": "Network bandwidth trend",
         "sql_code": [
-            "SELECT *",
-            "FROM aws_family"
+            "FROM aws_family",
+            "WHERE family in ('c3', 'c4', 'c5n', 'c6gn', 'c7gn')",
+            "UNION BY name",
+            "FROM aws_all",
+            "WHERE instance = 'c3.8xlarge'"
         ],
         "r_code": [
             "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
             "",
             "### the current table is bound to the variable 'df'",
-            "output <- ggplot(df, aes(x=release_year, net_gbitps/price_hour, label=paste(family, net_gbitps, 'Gbit/s'), color=arch)) +",
+            "output <- ggplot(df, aes(x=release_year, net_gbitps/price_hour, label=paste(family, '\\n', net_gbitps, 'Gbit/s'))) +",
             "    geom_text() +",
             "    ggtitle('Network bandwidth trend') +",
+            "    expand_limits(y=0) +",
             "    theme_bw()",
             "",
             "plot(output); dev.off(); to_svg() # output to the html page"
