@@ -16,6 +16,7 @@
         "r_code": [
             "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
             "",
+            "### current query result is in 'df'",
             "output <- ggplot(df, aes(x = ram_gib/price_hour, y = cores/price_hour, colour = category, group = category, label = family)) +",
             "    geom_text() +",
             "    ggtitle('Instance families: RAM vs CPU Cores') +",
@@ -33,6 +34,7 @@
         "r_code": [
             "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
             "",
+            "### current query result is in 'df'",
             "output <- ggplot(df, aes(x = release_year, y = ram_gib/price_hour, label=family, color=category)) +",
             "    geom_text() +",
             "    scale_y_continuous('GiB/$/hour') +",
@@ -56,7 +58,7 @@
         "r_code": [
             "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
             "",
-            "### the current table is bound to the variable 'df'",
+            "### current query result is in 'df'",
             "output <- ggplot(df, aes(x = release_year, y = cores_per_usd, colour = arch)) +",
             "    geom_text(aes(label = best_instance)) +",
             "    theme_bw()",
@@ -93,12 +95,12 @@
             "WHERE family in ('c4', 'c5', 'c6g', 'c6a', 'c7g', 'c7i', 'c8g') or family like 'c%n'",
             "UNION BY name",
             "FROM aws_all",
-            "WHERE instance = 'c3.8xlarge'"
+            "WHERE instance = 'c3.8xlarge' -- not current generation, but interesting data point"
         ],
         "r_code": [
             "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
             "",
-            "### the current table is bound to the variable 'df'",
+            "### current query result is in 'df'",
             "output <- ggplot(df, aes(x=release_year, net_gbitps/price_hour, label=paste(family, '\\n', net_gbitps, 'Gbit/s'))) +",
             "    geom_text() +",
             "    geom_point(color='grey') +",
@@ -139,7 +141,7 @@
         "r_code": [
             "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
             "",
-            "### the current table is bound to the variable 'df'",
+            "### current query result is in 'df'",
             "output <- ggplot(df, aes(x=storage_gb/price_hour, y=storage_read_iops/price_hour, label=family, color=arch)) +",
             "    ggtitle('Instance SSDs: Capacity/$ vs IOPS/$') +",
             "    geom_text() +",
