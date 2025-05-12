@@ -68,7 +68,7 @@
         "description": "CPU performance (SPECint) per $",
         "sql_code": [
             "SELECT value as specint, release_year, price_hour, family, instance,",
-            "       case when processor_model like '%AMD%' then 'AMD' when arch = 'arm64' then 'Graviton' else 'Intel' end as Vendor",
+            "       case when processor_model like '%AMD%' then 'AMD' when arch = 'arm64' then 'Graviton' else 'Intel' end as Vendor, processor_model",
             "FROM aws_all join (FROM benchmark WHERE benchmark = 'specint_full_peak') using (instance)",
             "order by specint/price_hour desc"
         ],
