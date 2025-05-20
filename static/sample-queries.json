@@ -78,7 +78,7 @@
             "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
             "",
             "output <- ggplot(df, aes(x = release_year, y = specint/price_hour, colour = Vendor, group = Vendor)) +",
-            "    scale_x_continuous(limits=c(2014,2025)) +",
+            "    scale_x_continuous(limits=c(2013.5,2025)) +",
             "    geom_line() +",
             "    geom_label(aes(label = instance)) +",
             "    ggtitle('CPU Performance (multi-threaded SPECint) per $') +",
