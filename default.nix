@@ -11,10 +11,14 @@ stdenv.mkDerivation {
   };
 
   buildInputs = [
-    nodejs_22
+    nodejs_22 # website
+    python313 # data converter
+    python313Packages.duckdb
+    python313Packages.pandas
   ];
 
   nativeBuildInputs = [
     inkscape
+    duckdb
   ];
 }

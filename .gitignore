@@ -10,3 +10,6 @@ npm-debug.log*
 .eslintcache
 .direnv
 .envrc
+
+data/ddf--gapminder--systema_globalis/
+data/*.duckdb*
