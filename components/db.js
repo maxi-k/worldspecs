@@ -62,7 +62,7 @@ export default class DB {
           for (const k in row) {
             if (!!row[k] && typeof row[k] === 'object') {
               // console.log("mapping object ", k, row[k]);
-              row[k] = [...row[k].values()].join(',')
+              row[k] = [...row[k].values()].join(', ')
             }
           }
           return row;

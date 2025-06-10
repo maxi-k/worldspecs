@@ -81,7 +81,7 @@
       "theme_set(theme_bw())",
       "",
       "### the current table is bound to the variable 'data'",
-      "output <- ggplot(data, aes(y = life_expectancy, x = gdp_per_capita, color = region, frame = year)) +",
+      "output <- ggplot(data, aes(y = life_expectancy, x = gdp_per_capita, color = region, frame = year, label = country)) +",
       "  scale_x_log10() + ",
       "  geom_point(alpha = 0.7) + ",
       "  labs(y = 'Life Expectancy', x = 'GDP per Capita (log scale)')",
