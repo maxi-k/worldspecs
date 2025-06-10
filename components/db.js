@@ -55,10 +55,18 @@ export default class DB {
       const response = await this.#conn.query(q);
       return {
         columns: response.schema.fields.map(field => field.name),
-        rows: // Bug fix explained at: https://github.com/GoogleChromeLabs/jsbi/issues/30
-        JSON.parse(JSON.stringify(response.toArray(), (key, value) =>
-          typeof value === 'bigint' ? parseInt(value.toString()) : value
-        ))
+        // Bug fix explained at: https://github.com/GoogleChromeLabs/jsbi/issues/30
+        rows: JSON.parse(JSON.stringify(response.toArray(), (key, value) => {
+          return typeof value === 'bigint' ? parseInt(value.toString()) : value
+        })).map((row) => {
+          for (const k in row) {
+            if (!!row[k] && typeof row[k] === 'object') {
+              // console.log("mapping object ", k, row[k]);
+              row[k] = [...row[k].values()].join(',')
+            }
+          }
+          return row;
+        })
       }
     } catch (error) {
       return { error: error.toString()?.split("\n") }

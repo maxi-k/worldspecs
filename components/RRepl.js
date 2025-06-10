@@ -28,15 +28,15 @@ export default class RRepl {
   }
 
   minimalRCode() {
-    return `to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)
-theme_set(theme_bw())
+    return `theme_set(theme_bw())
 
-### the current table is bound to the variable 'df'
-output <- ggplot(df, aes()) +
+### the current table is bound to the variable 'data'
+output <- ggplot(data, aes()) +
   annotate(geom = 'text', x = 0, y = 0, label = 'Plot something!')
 
 ## output to the html page
-plot(output); dev.off(); to_svg()`
+plotly_json(output, pretty=FALSE)
+`
   }
 
   // private methods
@@ -44,8 +44,8 @@ plot(output); dev.off(); to_svg()`
   static async #initializeWebR() {
     const webR = new WebR();
     await webR.init();
-    await webR.installPackages(['ggplot2', 'svglite'], { quiet: true, mount: true });
-    await webR.evalRVoid("library(svglite); library(ggplot2)");
+    await webR.installPackages(['ggplot2', 'svglite', 'plotly'], { quiet: true, mount: true });
+    await webR.evalRVoid("library(svglite); library(plotly); library(ggplot2);");
     return webR;
   }
 
@@ -53,15 +53,18 @@ plot(output); dev.off(); to_svg()`
     if (!code) {
       return { error: 'No code provided. Type some R code above!' };
     }
-    const svgstr = await this.#webR.evalRString(code);
-    $(this.#outputSelector).html(svgstr);
-    return { svg: svgstr };
+    // const svgstr = await this.#webR.evalRString(code);
+    // $(this.#outputSelector).html(svgstr);
+
+    const plotlyData = await this.#webR.evalRString(code);
+    Plotly.react(this.#outputSelector, JSON.parse(plotlyData), {});
+    return { svg: document.getElementById(this.#outputSelector).getElementsByTagName('svg')[0].outerHTML };
   }
 
   async onDataUpdate(table) {
-    await this.#webR.objs.globalEnv.bind('df', table.rows);
-    console.log('bound new table to R:' );
-    await this.#webR.evalR('print(head(df))');
+    await this.#webR.objs.globalEnv.bind('data', table.rows);
+    console.log('bound new table to R:', table);
+    await this.#webR.evalR('print(head(data))');
   }
 
   async onScreenUpdate() {
@@ -71,9 +74,9 @@ plot(output); dev.off(); to_svg()`
       let h = window.innerHeight/2;
       await this.#webR.objs.globalEnv.bind('output.width.inch', w/96);
       await this.#webR.objs.globalEnv.bind('output.height.inch', h/96);
+      Plotly.relayout(this.#outputSelector, { height: h, width: w });
       // console.log('bound output size to R:', w, h);
     } catch (e) {
-      log("Error updating screen size: " + e);
       console.log("failed to re-bind or re-draw data", e);
     }
   }

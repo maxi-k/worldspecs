@@ -27,13 +27,13 @@ const defaultState = {
 `describe`,
   // initial R code to run
   rCode: //
-    `to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)
+  `theme_set(theme_bw())
 
 ### the current table is bound to the variable 'df'
-output <- ggplot(df, aes()) +
+output <- ggplot(data, aes()) +
   annotate(geom = 'text', x = 0, y = 0, label = 'Plot something!')
 
-plot(output); dev.off(); to_svg() # output to the html page`,
+plotly_json(output, pretty = FALSE)`,
   sqlError: 'loading',
   rError: 'loading',
   layout: { type: 'table' }

@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       state.setState({ rError: res.error });
     } else {
       state.setState({ rError: '', rOutput: res.svg });
-      document.getElementById(outputElem).innerHTML = res.svg;
+      // document.getElementById(outputElem).innerHTML = res.svg;
     }
   }
   // 'Execute R' button
