@@ -3,7 +3,7 @@
     "description": "Table Info",
     "group": "Schema Info",
     "sql_code": [
-      "SELECT table_name, estimated_size, d.column_names,",
+      "SELECT table_name, estimated_size, d.column_names[:5] first_five_columns,",
       "  regexp_replace(comment, '(.{40}) ', e'\\\\1\\n', 'g') as description -- linebreaks for long comments",
       "FROM duckdb_tables() a",
       "JOIN (describe) d ON d.name = a.table_name",
@@ -39,24 +39,25 @@
     "r_code": ""
   },
   {
-    "description": "GDP Development by Country",
+    "description": "GDP Development by Region",
     "group": "Sample Queries with Plots",
     "sql_code": [
       "select gdp.time as year,",
-      "       cty.name as country,",
-      "       cty.world_4region as region,",
-      "       cty.main_religion_2008 as main_religion,",
-      "       gdp.total_gdp_us_inflation_adjusted/1e9 as gdp_billions,",
-      "from datapoints_total_gdp_us_inflation_adjusted_by_geo_time gdp",
-      "join entities_geo_country cty on cty.country = gdp.geo"
+      "       cty.world_6region as region,",
+      "       avg(gdp.gdp_pcap) as gdp_per_capita,",
+      "from datapoints_gdp_pcap_by_country_time gdp",
+      "join entities_geo_country cty on cty.country = gdp.country",
+      "group by cty.world_6region, gdp.time",
+      "order by gdp_per_capita desc"
     ],
     "r_code": [
       "theme_set(theme_bw())",
       "",
       "### the current table is bound to the variable 'data'",
-      "output <- ggplot(data, aes(x = year, y = gdp_billions, color = region, group = country)) +",
-      "  geom_point() +",
-      "  geom_line()",
+      "output <- ggplot(data, aes(x = year, y = gdp_per_capita, color = region)) +",
+      "  scale_y_log10() +",
+      "  geom_line() +",
+      "  labs(x = 'Year', y = 'GDP per Capita (log)')",
       "",
       "plotly_json(output, pretty=FALSE)"
     ]
@@ -69,11 +70,12 @@
       "       cty.name as country,",
       "       cty.world_4region as region,",
       "       cty.main_religion_2008 as main_religion,",
-      "       gdp.gdppercapita_us_inflation_adjusted as gdp_per_capita,",
-      "       le.life_expectancy_at_birth_data_from_ihme as life_expectancy",
-      "from datapoints_gdppercapita_us_inflation_adjusted_by_geo_time gdp",
-      "join datapoints_life_expectancy_at_birth_data_from_ihme_by_geo_time le on gdp.geo = le.geo and gdp.time = le.time",
-      "join entities_geo_country cty on cty.country = gdp.geo"
+      "       gdp.gdp_pcap as gdp_per_capita,",
+      "       le.lex as life_expectancy",
+      "from datapoints_gdp_pcap_by_country_time gdp",
+      "join datapoints_lex_by_country_time le on gdp.country = le.country and gdp.time = le.time",
+      "join entities_geo_country cty on cty.country = gdp.country",
+      "where gdp.time between 1850 and year(today())"
     ],
     "r_code": [
       "theme_set(theme_bw())",

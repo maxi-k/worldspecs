@@ -4,11 +4,7 @@
 # @file
 # @version 0.1
 
-
-data/gapminder.duckdb:
-	cd data && $(MAKE) gapminder.duckdb
-
-static/worldspecs.duckdb: data/gapminder.duckdb
+static/worldspecs.duckdb:
 	cd data && $(MAKE) gapminder-reduced.duckdb
 	mv data/gapminder-reduced.duckdb static/worldspecs.duckdb
 

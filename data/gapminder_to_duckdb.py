@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Gapminder Systema Globalis to DuckDB Converter
+Gapminder DDF to DuckDB Converter
 
-This script converts the Gapminder Systema Globalis dataset from DDF-CSV format
+This script converts Gapminder datasets from DDF-CSV format
 to a single DuckDB database with proper table and column documentation.
 
 The script handles:
@@ -37,9 +37,11 @@ logger = logging.getLogger(__name__)
 class GapminderToDuckDB:
     """Main class for converting Gapminder DDF data to DuckDB."""
 
-    def __init__(self, repo_path: str, output_db: str, verbose: bool = False, create_indexes: bool = True):
+    def __init__(self, repo_path: str, output_db: str, source_repo: str,
+                 verbose: bool = False, create_indexes: bool = True):
         self.repo_path = Path(repo_path)
         self.output_db = Path(output_db)
+        self.source_repo = source_repo
         self.verbose = verbose
         self.create_indexes = create_indexes
         self.connection = None
@@ -54,7 +56,7 @@ class GapminderToDuckDB:
 
     def clone_or_update_repo(self) -> None:
         """Clone the repository if it doesn't exist, or update if it does."""
-        repo_url = "https://github.com/open-numbers/ddf--gapminder--systema_globalis.git"
+        repo_url = self.source_repo
 
         if not self.repo_path.exists():
             logger.info(f"Cloning repository to {self.repo_path}")
@@ -580,6 +582,12 @@ Examples:
     )
 
     parser.add_argument(
+        '--source-repo',
+        default='https://github.com/open-numbers/ddf--gapminder--fasttrack',
+        help='DDF source repository'
+    )
+
+    parser.add_argument(
         '--no-indexes',
         action='store_true',
         help='Skip creating indexes to save disk space (default: create indexes)'
@@ -604,6 +612,7 @@ Examples:
     converter = GapminderToDuckDB(
         repo_path=args.repo_path,
         output_db=args.output_db,
+        source_repo=args.source_repo,
         verbose=args.verbose,
         create_indexes=not args.no_indexes  # Invert the flag
     )

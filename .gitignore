@@ -11,5 +11,5 @@ npm-debug.log*
 .direnv
 .envrc
 
-data/ddf--gapminder--systema_globalis/
+data/ddf--*
 data/*.duckdb*
