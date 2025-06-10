@@ -152,6 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
   SAMPLE_QUERIES.forEach(item => {
     let sqlProcessed = item.sql_code;
     let rProcessed = item.r_code;
+    let group = item.group || "Others";
 
     if (Array.isArray(sqlProcessed)) {
       sqlProcessed = sqlProcessed.join('\n');
@@ -160,7 +161,11 @@ document.addEventListener('DOMContentLoaded', () => {
       rProcessed = rProcessed.join('\n');
     }
 
-    samplesTable[item.description] = {
+    if (!(group in samplesTable)) {
+      samplesTable[group] = {}
+    }
+
+    samplesTable[group][item.description] = {
       sql_code: sqlProcessed,
       r_code: rProcessed,
       layout: item.layout || (!!rProcessed ? 'split' : 'table')
@@ -168,19 +173,21 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const $dropdown = $('#sample-queries');
-  for (const description in samplesTable) {
-    if (description) {
-      $dropdown.append(
-        $('<option></option>')
-          .attr('value', description)
-          .text(description)
-      );
+  for (const group in samplesTable) {
+    let html = '';
+    for (const description in samplesTable[group]) {
+      html += `<option value="${description}">${description}</option>`
     }
+    $dropdown.append(
+      $('<optgroup></optgroup>')
+        .attr('label', group)
+        .html(html)
+    );
   }
 
-  $dropdown.on('change', () => {
-    const selectedDescription = $('#sample-queries :selected').val();
-    const data = samplesTable[selectedDescription];
+  $dropdown.on('change', function() {
+    const selected = $('#sample-queries :selected')
+    const data = samplesTable[selected.parent().attr('label')][selected.val()];
     if (!data) { return; }
     const updates = { sqlQuery: data.sql_code, rCode: data.r_code, layout: { type: data.layout }, runningQuery: true };
     if (!data.r_code && 'repl' in app) {

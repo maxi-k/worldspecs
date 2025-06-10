@@ -4,8 +4,7 @@ import mvp_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?ur
 import duckdb_wasm_next from '@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url';
 import eh_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url';
 
-// Load static DuckDB database from GitHub
-import dbfile from '/static/cloudspecs.duckdb?url';
+import dbfile from '/static/worldspecs.duckdb?url';
 
 const MANUAL_BUNDLES = Object.freeze({
     mvp: {
@@ -18,7 +17,6 @@ const MANUAL_BUNDLES = Object.freeze({
     },
 });
 
-const DB_NAME = "cloudspecs.duckdb";
 export default class DB {
   #db; #conn;
 
@@ -39,14 +37,14 @@ export default class DB {
 
     // Fetch the database file
     //TODO: Could fail for large objects
-    const arrayBuffer = new Uint8Array(await (await fetch(dbfile)).arrayBuffer());
-
-    // Register the file in DuckDB's virtual filesystem
-    await db.registerFileBuffer(DB_NAME, new Uint8Array(arrayBuffer));
+    // const DB_NAME = "worldspecs.duckdb";
+    // const arrayBuffer = new Uint8Array(await (await fetch(dbfile)).arrayBuffer());
+    // // Register the file in DuckDB's virtual filesystem
+    // await db.registerFileBuffer(DB_NAME, new Uint8Array(arrayBuffer));
 
     // create connection
     const conn = await db.connect();
-    await conn.send("ATTACH 'cloudspecs.duckdb' AS specs;");
+    await conn.send(`ATTACH '${window.location.origin}${dbfile}' AS specs;`);
     await conn.send("USE specs;");
 
     return new DB(db, conn)
@@ -59,7 +57,7 @@ export default class DB {
         columns: response.schema.fields.map(field => field.name),
         rows: // Bug fix explained at: https://github.com/GoogleChromeLabs/jsbi/issues/30
         JSON.parse(JSON.stringify(response.toArray(), (key, value) =>
-          typeof value === 'bigint' ? parseInt(value.toString()) : value // return everything else unchanged
+          typeof value === 'bigint' ? parseInt(value.toString()) : value
         ))
       }
     } catch (error) {

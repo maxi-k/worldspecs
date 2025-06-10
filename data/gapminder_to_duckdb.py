@@ -37,10 +37,11 @@ logger = logging.getLogger(__name__)
 class GapminderToDuckDB:
     """Main class for converting Gapminder DDF data to DuckDB."""
 
-    def __init__(self, repo_path: str, output_db: str, verbose: bool = False):
+    def __init__(self, repo_path: str, output_db: str, verbose: bool = False, create_indexes: bool = True):
         self.repo_path = Path(repo_path)
         self.output_db = Path(output_db)
         self.verbose = verbose
+        self.create_indexes = create_indexes
         self.connection = None
 
         # Storage for metadata
@@ -120,7 +121,8 @@ class GapminderToDuckDB:
             filename = csv_file.name
 
             # Skip non-English files (look for language indicators)
-            if any(lang in filename for lang in ['--zh', '--es', '--fr', '--ar', '--ru']):
+            if csv_file.match('lang/**/*.csv'):
+                logger.debug(f"Ignoring file {csv_file} (contains 'lang/')")
                 continue
 
             # Skip the concepts file (already handled separately)
@@ -174,7 +176,7 @@ class GapminderToDuckDB:
 
         for entity_type, entity_info in self.entities.items():
             try:
-                table_name = f"entities_{entity_type}"
+                table_name = self._sanitize_table_name(f"entities_{entity_type}")
                 csv_file = entity_info['file']
 
                 logger.debug(f"Processing entity file: {csv_file}")
@@ -187,6 +189,7 @@ class GapminderToDuckDB:
                 CREATE OR REPLACE TABLE {table_name} AS
                 SELECT * FROM read_csv_auto('{csv_file}', header=true, sample_size=1000)
                 """
+                logger.debug(f"executing {create_sql}")
 
                 self.connection.execute(create_sql)
 
@@ -340,6 +343,8 @@ class GapminderToDuckDB:
         """Sanitize table name for SQL compatibility."""
         # Replace problematic characters with underscores
         sanitized = re.sub(r'[^a-zA-Z0-9_]', '_', name)
+        # replace double-underscore with single underscore
+        sanitized = re.sub(r'_+', '_', sanitized)
         # Ensure it doesn't start with a number
         if sanitized and sanitized[0].isdigit():
             sanitized = f"t_{sanitized}"
@@ -453,7 +458,6 @@ class GapminderToDuckDB:
         except Exception as e:
             logger.error(f"Error creating indexes: {e}")
 
-
     def print_summary(self) -> None:
         """Print a summary of the created database."""
         logger.info("Database creation summary:")
@@ -461,15 +465,15 @@ class GapminderToDuckDB:
         try:
             # Count tables by type
             tables = self.connection.execute("""
-                with table_types as (
-                     select *,
-                             CASE
-                                 WHEN table_name LIKE 'entities_%' THEN 'Entity Tables'
-                                 WHEN table_name LIKE 'datapoints_%' THEN 'Datapoint Tables'
-                                 WHEN table_name LIKE 'metadata_%' THEN 'Metadata Tables'
-                                 ELSE 'Other Tables'
-                             END as table_type
-                     from information_schema.tables
+                WITH table_types AS (
+                    SELECT *,
+                           CASE
+                               WHEN table_name LIKE 'entities_%' THEN 'Entity Tables'
+                               WHEN table_name LIKE 'datapoints_%' THEN 'Datapoint Tables'
+                               WHEN table_name LIKE 'metadata_%' THEN 'Metadata Tables'
+                               ELSE 'Other Tables'
+                           END as table_type
+                    FROM information_schema.tables
                 )
                 SELECT table_type, COUNT(*) as count
                 FROM table_types
@@ -503,35 +507,38 @@ class GapminderToDuckDB:
 
         except Exception as e:
             logger.error(f"Error generating summary: {e}")
-    
+
     def run(self) -> None:
         """Run the complete conversion process."""
         try:
             logger.info("Starting Gapminder to DuckDB conversion...")
-            
+
             # Step 1: Get the data
             self.clone_or_update_repo()
-            
+
             # Step 2: Connect to database
             self.connect_db()
-            
+
             # Step 3: Load metadata
             self.load_concepts()
-            
+
             # Step 4: Discover files
             self.discover_files()
-            
+
             # Step 5: Create entity tables
             self.create_entity_tables()
-            
+
             # Step 6: Create datapoint tables
             self.create_datapoint_tables()
-            
+
             # Step 7: Create metadata views
             self.create_metadata_views()
 
-            # Step 8: Create indexes
-            self.create_indexes()
+            # Step 8: Create indexes (optional)
+            if self.create_indexes:
+                self.create_indexes()
+            else:
+                logger.info("Skipping index creation (disabled by --no-indexes flag)")
 
             # Step 9: Print summary
             self.print_summary()
@@ -556,6 +563,7 @@ Examples:
   python gapminder_to_duckdb.py
   python gapminder_to_duckdb.py --repo-path ./gapminder-data --output-db gapminder.db
   python gapminder_to_duckdb.py --verbose
+  python gapminder_to_duckdb.py --no-indexes  # Skip indexes to save space
         """
     )
 
@@ -569,6 +577,12 @@ Examples:
         '--output-db',
         default='gapminder.duckdb',
         help='Output DuckDB database file (default: gapminder.duckdb)'
+    )
+
+    parser.add_argument(
+        '--no-indexes',
+        action='store_true',
+        help='Skip creating indexes to save disk space (default: create indexes)'
     )
 
     parser.add_argument(
@@ -590,7 +604,8 @@ Examples:
     converter = GapminderToDuckDB(
         repo_path=args.repo_path,
         output_db=args.output_db,
-        verbose=args.verbose
+        verbose=args.verbose,
+        create_indexes=not args.no_indexes  # Invert the flag
     )
 
     try:

@@ -16,7 +16,15 @@ export default class ResultTable {
       elem.DataTable().clear();
       elem.DataTable().destroy();
     }
-    let mappedCols = columns.map(key => ({ title: key, data: row => row[key] }));
+    let mappedCols = columns.map(key => ({
+      title: key,
+      data: row => row[key],
+      render: function(data, type, row) {
+        return typeof(data) === 'string' && type == 'display'
+          ? data.split('\n').join("<br/>")
+          : data;
+      }
+    }));
     let res = elem.empty().DataTable({
       data: rows,
       columns: mappedCols,

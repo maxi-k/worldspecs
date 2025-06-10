@@ -24,9 +24,7 @@ const URL_ENCODED_KEYS = ['sqlQuery', 'rCode', 'layout'];
 const defaultState = {
   // default SQL query to run
   sqlQuery: //
-`SELECT *
-FROM aws
-`,
+`describe`,
   // initial R code to run
   rCode: //
     `to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)
