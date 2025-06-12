@@ -1,0 +1,105 @@
+.search-wrapper {
+    position: relative;
+}
+/*.search-input {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    outline: none;
+    transition: all 0.3s ease;
+}*/
+.search-input {
+    width: 100%;
+}
+
+.search-input:focus {
+    box-shadow: 0 0px 8px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 1);
+}
+
+.search-input::placeholder {
+    color: #999;
+}
+
+.results-container {
+    position: absolute;
+    z-index: 999;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 5px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    width: 50%;
+    left: 25%;
+    display: none;
+}
+
+.results-container.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.result-item {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.result-item:last-child {
+    border-bottom: none;
+}
+
+.result-item:hover {
+    background: var(--dt-row-selected);
+    transform: translateX(4px);
+}
+
+.table-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.table-description {
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.no-results {
+    padding: 2rem 1.5rem;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+}
+
+/* Custom scrollbar */
+.results-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.results-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.results-container::-webkit-scrollbar-thumb {
+    background: var(--grey-border);
+    border-radius: 3px;
+}
+
+.results-container::-webkit-scrollbar-thumb:hover {
+    background: var(--grey-border);
+}

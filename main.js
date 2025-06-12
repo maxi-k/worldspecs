@@ -6,9 +6,10 @@ import DB from './components/db.js';
 import ResultTable from './components/ResultTable.js';
 import ErrorMessage from './components/ErrorMessage.js';
 import ResizeHandle from './components/ResizeHandle.js';
+import Search from './components/Search.js'
 import { toggleFavicon } from './components/favicons.js';
 import SAMPLE_QUERIES from './static/sample-queries.json';
-import { showToast } from '/util.js'
+import { showToast, copyToClipboard } from '/util.js'
 
 const app = {};
 ////////////////////////  SQL Editor  ///////////////////////
@@ -124,11 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // button for sharing url
   $('#share-btn').click(() => {
-    // state.saveState();
-    const text = window.location.href;
-    navigator.clipboard.writeText(text).then(() => {
-      showToast("Link copied to clipboard!");
-    }).catch(err => console.error("Failed to copy: ", err));
+    copyToClipboard(window.location.href, "Link copied to clipboard!");
   });
 
   // button for downloading svg
@@ -202,4 +199,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // grid resize drag handler
   app.resizeHandle = new ResizeHandle('#app', '#grid-resize', '#toggle-viz-btn');
+
+  let preparedStatement = null;
+  app.search = new Search('#table-search', async (query) => {
+    if (!preparedStatement) {
+      preparedStatement = await app.db.prepare(`
+SELECT table_name as name, case when length(comment) > $2 then comment[:$2-3] || '...' else comment end as description
+FROM duckdb_tables()
+WHERE (table_name ILIKE $1 ESCAPE '$') OR (comment ILIKE $1 ESCAPE '$')
+ORDER BY table_name DESC
+LIMIT 20
+`);
+    }
+    let fuzzyQuery = query.replace('$', '$$') // escape
+                          .replace('%', '$%') // escape
+                          .replace(' ', '%'); // fuzzy on spaces
+    fuzzyQuery = '%' + fuzzyQuery + '%';      // fuzzy at start and end
+    console.log('searching for ', fuzzyQuery);
+    let result = await preparedStatement.query(fuzzyQuery, 200);
+    return DB.duckdbToJson(result);
+  })
 });

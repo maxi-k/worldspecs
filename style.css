@@ -161,7 +161,7 @@ header {
   margin-right: .7em;
 }
 
-.dropdown {
+.button-dimensions {
     position: relative;
     display: inline-block;
     box-sizing: border-box;
@@ -171,11 +171,15 @@ header {
     padding: .71em 1em;
     border: 1px solid rgba(0, 0, 0, 0.3);
     border-radius: 2px;
-    cursor: pointer;
     font-size: .88em;
     color: black;
     white-space: nowrap;
     overflow: hidden;
+    outline: none;
+
+}
+
+.dropdown {
     background-color: rgba(0, 0, 0, 0.1);
     background: linear-gradient(to bottom, rgba(230, 230, 230, 0.1) 0%, rgba(0, 0, 0, 0.1) 100%);
     filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,StartColorStr="rgba(230, 230, 230, 0.1)", EndColorStr="rgba(0, 0, 0, 0.1)");
@@ -184,6 +188,6 @@ header {
     -ms-user-select: none;
     user-select: none;
     text-decoration: none;
-    outline: none;
     text-overflow: ellipsis;
+    cursor: pointer;
 }

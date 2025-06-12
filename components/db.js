@@ -50,26 +50,39 @@ export default class DB {
     return new DB(db, conn)
   }
 
+  async prepare(q) {
+    try {
+      const stmt = await this.#conn.prepare(q);
+      return stmt;
+    } catch (error) {
+      console.log("error while preparing statment: ", error);
+    }
+  }
+
   async query(q) {
     try {
       const response = await this.#conn.query(q);
       return {
         columns: response.schema.fields.map(field => field.name),
         // Bug fix explained at: https://github.com/GoogleChromeLabs/jsbi/issues/30
-        rows: JSON.parse(JSON.stringify(response.toArray(), (key, value) => {
-          return typeof value === 'bigint' ? parseInt(value.toString()) : value
-        })).map((row) => {
-          for (const k in row) {
-            if (!!row[k] && typeof row[k] === 'object') {
-              // console.log("mapping object ", k, row[k]);
-              row[k] = [...row[k].values()].join(', ')
-            }
-          }
-          return row;
-        })
+        rows: DB.duckdbToJson(response)
       }
     } catch (error) {
       return { error: error.toString()?.split("\n") }
     }
+  }
+
+  static duckdbToJson(response) {
+    return JSON.parse(JSON.stringify(response.toArray(), (key, value) => {
+      return typeof value === 'bigint' ? parseInt(value.toString()) : value
+    })).map((row) => {
+      for (const k in row) {
+        if (!!row[k] && typeof row[k] === 'object') {
+          // console.log("mapping object ", k, row[k]);
+          row[k] = [...row[k].values()].join(', ')
+        }
+      }
+      return row;
+    })
   }
 };
