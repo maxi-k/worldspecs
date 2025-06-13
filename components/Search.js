@@ -1,5 +1,5 @@
 import './Search.css'
-import { debounce, copyToClipboard } from '/util.js'
+import { debounce, copyToClipboard, capStringLen } from '/util.js'
 
 const template = `
     <div class="search-container">
@@ -27,19 +27,24 @@ export default class Search {
     this.#searchFn = searchFn;
     this.#results = '#resultsContainer';
     this.#handlers = {
-      input: debounce(this.searchTables.bind(this), 300),
-      click: this.toggleResults.bind(this),
+      input: debounce(this.onInput.bind(this), 300),
+      click: this.onClick.bind(this),
       select: this.selectTable.bind(this)
-    }
+    };
     const $input = $(this.#input);
     $input[0].innerHTML = template;
-    $input[0].addEventListener('input', this.#handlers.input);
-    $input[0].addEventListener('focus', this.#handlers.focus);
-    document.addEventListener('click', this.#handlers.click);
-    $('.results-container').on('click', '.result-item', this.#handlers.select);
+    $input.on('input', this.#handlers.input);                                   // search on input
+    document.addEventListener('click', this.#handlers.click);                   // focus/unfocus on click
+    $('.results-container').on('click', '.result-item', this.#handlers.select); // select result
+    this.prefillResults();                                                      // initial result rendering (async)
   }
 
-  toggleResults(e) {
+  async prefillResults() {
+    const result = await this.searchTables("");
+    this.renderResults(result, /*don't show*/ false);
+  }
+
+  onClick(e) {
     if (e.target.closest('.search-input')) {
       $(this.#results).toggleClass('show');
     } else {
@@ -47,32 +52,31 @@ export default class Search {
     }
   }
 
-  renderResults(tables) {
+  async onInput(e) {
+    const results = await this.searchTables(e.target.value);
+    this.renderResults(results, true);
+  }
+
+  renderResults(tables, show = true) {
     const resultsContainer = $(this.#results);
     if (tables.length === 0) {
       resultsContainer[0].innerHTML = '<div class="no-results">No tables found matching your search</div>';
     } else {
       resultsContainer[0].innerHTML = tables.map(table => `
-                    <div class="result-item" data-table-name="${table.name}">
-                        <div class="table-name">${table.name}</div>
-                        <div class="table-columns">${table.columns}</div>
-                        <div class="table-description">${table.description}</div>
+                    <div class="result-item" data-table-name="${table.name}" title="${table.description}">
+                        <span class="table-name">${table.name}</span>
+                        <span class="table-columns">${table.columns}</span>
+                        <span class="table-description">${capStringLen(table.description, 200)}</span>
                     </div>
                 `).join('');
     }
-    resultsContainer.addClass('show');
+    if (show) {
+      resultsContainer.addClass('show');
+    }
   }
 
-  async searchTables(e) {
-    const resultsContainer = $(this.#results)[0];
-    const query = e.target.value;
-    if (!query.trim()) {
-      this.renderResults([]);
-      $(this.#results).removeClass('show');
-      return;
-    }
-
-    this.renderResults(await this.#searchFn(query));
+  async searchTables(query) {
+    return await this.#searchFn(query.trim());
   }
 
   selectTable(e) {

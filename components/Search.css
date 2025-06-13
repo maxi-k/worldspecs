@@ -40,7 +40,8 @@
     transform: translateY(-10px);
     transition: all 0.3s ease;
     width: 50%;
-    left: 25%;
+    max-width: 600px;
+    margin-right: 2em;
     display: none;
 }
 
@@ -69,30 +70,25 @@
 .table-name {
     font-weight: 600;
     color: #333;
-    font-size: 1rem;
-    margin-bottom: 0.25rem;
+    font-size: 1.02rem;
+    padding-bottom: .1rem;
+    display: block;
 }
 
 .table-description {
+    display: block;
     color: #666;
-    font-size: 0.9rem;
+    font-size: .9rem;
+    font-style: italic;
     line-height: 1.4;
 }
 
 .table-columns {
+    display: block;
     color: #666;
-    font-size: 0.9rem;
+    font-size: 1rem;
     line-height: 1.4;
-}
-
-.table-columns::before {
-    content: "Columns: ";
-    font-weight: bold;
-}
-
-.table-description::before {
-    content: "Description: ";
-    font-weight: bold;
+    padding-bottom: .3rem;
 }
 
 .no-results {

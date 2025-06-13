@@ -7,8 +7,8 @@ import ResultTable from './components/ResultTable.js';
 import ErrorMessage from './components/ErrorMessage.js';
 import ResizeHandle from './components/ResizeHandle.js';
 import Search from './components/Search.js'
+import SampleQueries from './components/SampleQueries.js'
 import { toggleFavicon } from './components/favicons.js';
-import SAMPLE_QUERIES from './static/sample-queries.json';
 import { showToast, copyToClipboard } from '/util.js'
 
 const app = {};
@@ -30,6 +30,31 @@ async function runQuery() {
   }
 }
 
+////////////////////////  Table Search  ///////////////////////
+async function initializeSearch() {
+  let preparedStatement = await app.db.prepare(`
+SELECT t.table_name as name,
+       d.column_names as columns,
+       t.comment as description,
+FROM duckdb_tables() t
+JOIN (describe) d ON d.name = t.table_name
+WHERE (t.table_name ILIKE $1 ESCAPE '$') OR (t.comment ILIKE $1 ESCAPE '$')
+   OR len(list_filter(d.column_names, x -> (x ILIKE $1 ESCAPE '$'))) > 0
+ORDER BY table_name DESC
+LIMIT $2
+`);
+  app.search = new Search('#table-search', async (query, limit = 20) => {
+    let fuzzyQuery = query.replace('$', '$$') // escape
+                          .replace('%', '$%') // escape
+                          .replace(' ', '%'); // fuzzy on spaces
+    fuzzyQuery = '%' + fuzzyQuery + '%';      // fuzzy at start and end
+    // console.log('searching for ', fuzzyQuery);
+    let result = await preparedStatement.query(fuzzyQuery, limit);
+    return DB.duckdbToJson(result);
+  })
+}
+
+////////////////////////  DB connection  ///////////////////////
 document.addEventListener('DOMContentLoaded', async () => {
   // SQL Code Editor
   app.sqlEditor = new CodeEditor('#sql-editor', {
@@ -64,7 +89,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  await runQuery();
+  // async functions, after DB is ready; not awaited
+  runQuery();
+  initializeSearch();
 });
 
 ////////////////////////  R module  ///////////////////////
@@ -144,83 +171,12 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location = newUrl;
   });
 
-  // parse sample queries
-  const samplesTable = {};
-  SAMPLE_QUERIES.forEach(item => {
-    let sqlProcessed = item.sql_code;
-    let rProcessed = item.r_code;
-    let group = item.group || "Others";
-
-    if (Array.isArray(sqlProcessed)) {
-      sqlProcessed = sqlProcessed.join('\n');
-    }
-    if (Array.isArray(rProcessed)) {
-      rProcessed = rProcessed.join('\n');
-    }
-
-    if (!(group in samplesTable)) {
-      samplesTable[group] = {}
-    }
-
-    samplesTable[group][item.description] = {
-      sql_code: sqlProcessed,
-      r_code: rProcessed,
-      layout: item.layout || (!!rProcessed ? 'split' : 'table')
-    };
-  });
-
-  const $dropdown = $('#sample-queries');
-  for (const group in samplesTable) {
-    let html = '';
-    for (const description in samplesTable[group]) {
-      html += `<option value="${description}">${description}</option>`
-    }
-    $dropdown.append(
-      $('<optgroup></optgroup>')
-        .attr('label', group)
-        .html(html)
-    );
-  }
-
-  $dropdown.on('change', function() {
-    const selected = $('#sample-queries :selected')
-    const data = samplesTable[selected.parent().attr('label')][selected.val()];
-    if (!data) { return; }
-    const updates = { sqlQuery: data.sql_code, rCode: data.r_code, layout: { type: data.layout }, runningQuery: true };
-    if (!data.r_code && 'repl' in app) {
-      updates.rCode = app.repl.minimalRCode();
-      updates.layout = updates.layout || { type: 'table' };
-    }
-    console.log(data);
-    state.setState(updates);
+  // sample queries
+  app.sampleQueries = new SampleQueries('#sample-queries', (updates) => {
+    state.setState({...updates, runningQuery: true});
     toggleFavicon(false); // Using sample queries is not cracked
     runQuery();
   });
-
   // grid resize drag handler
   app.resizeHandle = new ResizeHandle('#app', '#grid-resize', '#toggle-viz-btn');
-
-  let preparedStatement = null;
-  app.search = new Search('#table-search', async (query, limit = 20, max_string_len = 200) => {
-    if (!preparedStatement) {
-      preparedStatement = await app.db.prepare(`
-SELECT t.table_name as name,
-       d.column_names as columns,
-       case when length(t.comment) > $2 then t.comment[:$2-3] || '...' else t.comment end as description
-FROM duckdb_tables() t
-JOIN (describe) d ON d.name = t.table_name
-WHERE (t.table_name ILIKE $1 ESCAPE '$') OR (t.comment ILIKE $1 ESCAPE '$')
-   OR len(list_filter(d.column_names, x -> (x ILIKE $1 ESCAPE '$'))) > 0
-ORDER BY table_name DESC
-LIMIT $3
-`);
-    }
-    let fuzzyQuery = query.replace('$', '$$') // escape
-                          .replace('%', '$%') // escape
-                          .replace(' ', '%'); // fuzzy on spaces
-    fuzzyQuery = '%' + fuzzyQuery + '%';      // fuzzy at start and end
-    console.log('searching for ', fuzzyQuery);
-    let result = await preparedStatement.query(fuzzyQuery, max_string_len, limit);
-    return DB.duckdbToJson(result);
-  })
 });

@@ -17,3 +17,10 @@ export const copyToClipboard = (text, msg = "Copied to clipboard!") => {
     showToast(msg);
   }).catch(err => console.error("Failed to copy: ", err));
 }
+
+export const capStringLen = (text, maxlen) => {
+  if (text.length > (maxlen - 3)) {
+    return text.substring(0, maxlen - 3) + "...";
+  }
+  return text;
+}
