@@ -201,14 +201,18 @@ document.addEventListener('DOMContentLoaded', () => {
   app.resizeHandle = new ResizeHandle('#app', '#grid-resize', '#toggle-viz-btn');
 
   let preparedStatement = null;
-  app.search = new Search('#table-search', async (query) => {
+  app.search = new Search('#table-search', async (query, limit = 20, max_string_len = 200) => {
     if (!preparedStatement) {
       preparedStatement = await app.db.prepare(`
-SELECT table_name as name, case when length(comment) > $2 then comment[:$2-3] || '...' else comment end as description
-FROM duckdb_tables()
-WHERE (table_name ILIKE $1 ESCAPE '$') OR (comment ILIKE $1 ESCAPE '$')
+SELECT t.table_name as name,
+       d.column_names as columns,
+       case when length(t.comment) > $2 then t.comment[:$2-3] || '...' else t.comment end as description
+FROM duckdb_tables() t
+JOIN (describe) d ON d.name = t.table_name
+WHERE (t.table_name ILIKE $1 ESCAPE '$') OR (t.comment ILIKE $1 ESCAPE '$')
+   OR len(list_filter(d.column_names, x -> (x ILIKE $1 ESCAPE '$'))) > 0
 ORDER BY table_name DESC
-LIMIT 20
+LIMIT $3
 `);
     }
     let fuzzyQuery = query.replace('$', '$$') // escape
@@ -216,7 +220,7 @@ LIMIT 20
                           .replace(' ', '%'); // fuzzy on spaces
     fuzzyQuery = '%' + fuzzyQuery + '%';      // fuzzy at start and end
     console.log('searching for ', fuzzyQuery);
-    let result = await preparedStatement.query(fuzzyQuery, 200);
+    let result = await preparedStatement.query(fuzzyQuery, max_string_len, limit);
     return DB.duckdbToJson(result);
   })
 });

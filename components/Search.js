@@ -55,6 +55,7 @@ export default class Search {
       resultsContainer[0].innerHTML = tables.map(table => `
                     <div class="result-item" data-table-name="${table.name}">
                         <div class="table-name">${table.name}</div>
+                        <div class="table-columns">${table.columns}</div>
                         <div class="table-description">${table.description}</div>
                     </div>
                 `).join('');

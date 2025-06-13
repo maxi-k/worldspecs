@@ -79,6 +79,22 @@
     line-height: 1.4;
 }
 
+.table-columns {
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.table-columns::before {
+    content: "Columns: ";
+    font-weight: bold;
+}
+
+.table-description::before {
+    content: "Description: ";
+    font-weight: bold;
+}
+
 .no-results {
     padding: 2rem 1.5rem;
     text-align: center;
