@@ -69,15 +69,18 @@ plotly_json(output, pretty=FALSE)
 
   async onScreenUpdate() {
     try {
-      let w = document.getElementById(this.#outputSelector).clientWidth;
+      let elem = document.getElementById(this.#outputSelector);
+      let w = elem.clientWidth;
       w = w == 0  ? 0.9 * window.innerWidth : w;
       let h = window.innerHeight/2;
       await this.#webR.objs.globalEnv.bind('output.width.inch', w/96);
       await this.#webR.objs.globalEnv.bind('output.height.inch', h/96);
-      Plotly.relayout(this.#outputSelector, { height: h, width: w });
+      if (elem.data) { // re-layout if plot already exists
+        Plotly.relayout(this.#outputSelector, { height: h, width: w });
+      }
       // console.log('bound output size to R:', w, h);
     } catch (e) {
-      console.log("failed to re-bind or re-draw data", e);
+      console.error("failed to re-bind or re-draw data", e);
     }
   }
 }

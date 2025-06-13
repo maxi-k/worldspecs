@@ -55,7 +55,7 @@ export default class DB {
       const stmt = await this.#conn.prepare(q);
       return stmt;
     } catch (error) {
-      console.log("error while preparing statment: ", error);
+      console.error("error while preparing statment: ", error);
     }
   }
 
