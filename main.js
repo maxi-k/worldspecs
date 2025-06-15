@@ -6,8 +6,9 @@ import DB from './components/db.js';
 import ResultTable from './components/ResultTable.js';
 import ErrorMessage from './components/ErrorMessage.js';
 import ResizeHandle from './components/ResizeHandle.js';
-import Search from './components/Search.js'
-import SampleQueries from './components/SampleQueries.js'
+import Search from './components/Search.js';
+import SampleQueries from './components/SampleQueries.js';
+import LoadingSpinner from './components/LoadingSpinner.svg?raw';
 import { toggleFavicon } from './components/favicons.js';
 import { showToast, copyToClipboard } from '/util.js'
 
@@ -56,6 +57,9 @@ LIMIT $2
 
 ////////////////////////  DB connection  ///////////////////////
 document.addEventListener('DOMContentLoaded', async () => {
+  $('#table-search').html(`
+<div class='header-loading-spinner'>${LoadingSpinner}</div>
+`)
   // SQL Code Editor
   app.sqlEditor = new CodeEditor('#sql-editor', {
     mode: 'text/x-sql',

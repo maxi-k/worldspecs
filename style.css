@@ -161,6 +161,11 @@ header {
   margin-right: .7em;
 }
 
+.header-loading-spinner {
+  width: 2.5em;
+  height: 2.5em;
+}
+
 .button-dimensions {
     position: relative;
     display: inline-block;

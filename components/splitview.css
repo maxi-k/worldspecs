@@ -1,3 +1,7 @@
+:root {
+    --resize-handle-width: 5px;
+}
+
 .splitview {
     display: grid;
     grid-template-areas:
@@ -6,7 +10,7 @@
         /*  "sql-output grid-resize r-output" */
         "footer footer footer";
 
-    grid-template-columns: calc(50% - 3px) 6px calc(50% - 3px);
+    grid-template-columns: calc(50% - var(--resize-handle-width)) calc(2* var(--resize-handle-width)) calc(50% - var(--resize-handle-width));
 
     #grid-resize {
         background-color: lightgray;

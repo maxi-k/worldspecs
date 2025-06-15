@@ -67,7 +67,7 @@ export default class ResizeHandle {
     const grid = $(this.#grid)[0];
     const pct = 100 * (evt.clientX / grid.clientWidth);
     this.#curPct = pct;
-    grid.style["grid-template-columns"] = `calc(${pct}% - 3px) 6px calc(${100-pct}% - 3px)`;
+    ResizeHandle.#applyGridWidth(grid, pct);
   };
 
   pointerUp(evt) {
@@ -91,7 +91,7 @@ export default class ResizeHandle {
   }
 
   static #applyGridWidth(grid, pct) {
-    grid.style["grid-template-columns"] = `calc(${pct}% - 3px) 6px calc(${100-pct}% - 3px)`;
+    grid.style["grid-template-columns"] = `calc(${pct}% - var(--resize-handle-width)) calc(2 * var(--resize-handle-width)) calc(${100-pct}% - var(--resize-handle-width))`;
   }
 
 }
