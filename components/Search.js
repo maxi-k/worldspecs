@@ -76,7 +76,7 @@ export default class Search {
   }
 
   async searchTables(query) {
-    return await this.#searchFn(query.trim());
+    return await this.#searchFn(query.trim(), 50);
   }
 
   selectTable(e) {
@@ -84,4 +84,3 @@ export default class Search {
     copyToClipboard(tableName);
   }
 }
-

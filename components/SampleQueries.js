@@ -37,8 +37,8 @@ export default class SampleQueries {
   static parseSamples() {
     const samplesTable = {};
     SAMPLE_QUERIES.forEach(item => {
-      let sqlProcessed = item.sql_code;
-      let rProcessed = item.r_code;
+      let sqlProcessed = item.sql_code || '';
+      let rProcessed = item.r_code || '';
       let group = item.group || "Others";
 
       if (Array.isArray(sqlProcessed)) {
@@ -65,6 +65,8 @@ export default class SampleQueries {
 };
 
 const GROUP_ORDER = [
+  'Schnupperstudium',
+  'Übungsaufgaben',
   'Schema Info',
   'GDP & Economy',
   'CO2 & Climate',
@@ -251,6 +253,35 @@ output <- ggplot(data, aes(x = time, y = pct_70plus, color = country)) +
 plotly_json(output, pretty=FALSE)`
   },
   { // ------------------------------------------------------------
+    description: 'Age Groups',
+    group: 'Country Populations',
+    sql_code: `select old.time, cty.name as country,
+	   old.population_aged_70plus_years_total_number as people_70plus,
+       young.u5pop as people_5under,
+       100.0*old.population_aged_70plus_years_total_number/pop.pop as pct_70plus,
+       100.0*young.u5pop/pop.pop as pct_5under,
+
+from datapoints_population_aged_70plus_years_total_number_by_geo_time old
+join datapoints_u5pop_by_country_time young on old.time = young.time and old.geo = young.country
+join datapoints_pop_by_country_time	pop on pop.country = old.geo and pop.time = old.time
+join entities_geo_country cty on cty.country = old.geo
+
+where cty.name in ('Germany', 'China', 'South Korea')
+  and old.time < year(today())`,
+    r_code: `theme_set(theme_bw())
+
+### the current table is bound to the variable 'data'
+output <- ggplot(data, aes(x = time, color = country)) +
+    geom_line(aes(y = pct_70plus, linetype = '70+')) +
+    geom_line(aes(y = pct_5under, linetype = '0-5')) +
+    expand_limits(y = 0) +
+    labs(x = 'Year', y = 'Percent of People in Age Group', title = 'Percent of People by Age Group and Country',
+         linetype = 'Age Group', color = 'Country')
+
+## output to the html page
+plotly_json(output, pretty=FALSE)`
+  },
+  { // ------------------------------------------------------------
     description: `Rich Countries Region`,
     group: "GDP & Economy",
     sql_code: `
@@ -277,5 +308,118 @@ output <- ggplot(data, aes(x = time, y = country_count, fill = region, label = c
 
 ## output to the html page
 plotly_json(output, pretty=FALSE)`
-  }
+  },
+  ////////////////////////////////////////////////////////////////////////////////
+  { // ------------------------------------------------------------
+    description: 'Simple Query',
+    group: 'Schnupperstudium',
+    sql_code: `
+SELECT country, name, world_4region -- return only these three columns
+FROM entities_geo_country           -- table name
+WHERE world_4region = 'asia'        -- only countries in asia
+ORDER BY name ASC                   -- names in ascending order`
+  }, { // ------------------------------------------------------------
+    description: 'Get All Columns',
+    group: 'Schnupperstudium',
+    sql_code: `
+SELECT *                  -- *: give me all the columns!
+FROM entities_geo_country`
+  },
+  { // ------------------------------------------------------------
+    description: 'Grouping',
+    group: 'Schnupperstudium',
+    sql_code: `
+-- Count the countries by main religion (in 2008)
+SELECT main_religion_2008, COUNT()
+FROM entities_geo_country
+GROUP BY main_religion_2008
+ORDER BY COUNT() ASC`
+  },
+  { // ------------------------------------------------------------
+    description: 'Calculating',
+    group: 'Schnupperstudium',
+    sql_code: `
+SELECT country,
+    floor(time/100) as jahrhundert,             -- Runde das Jahr auf das Jahrhundert ab
+    avg(co2_pcap_terr) as avg_yearly_emissions, -- Durschnittsemissionen pro Jahr
+FROM datapoints_co2_pcap_terr_by_country_time   -- Grundtabelle
+WHERE country = 'deu'                           -- Nur Deutschland
+GROUP by country, floor(time/100)               -- Gruppiere nach Land (hier unnötig) und Jahrhundert
+`
+  },
+  { // ------------------------------------------------------------
+    description: 'Plotting Data',
+    group: 'Schnupperstudium',
+    sql_code: `
+SELECT *                                      -- *: give me all the columns!
+FROM datapoints_co2_pcap_terr_by_country_time -- very long table name
+WHERE country in ('deu', 'chn', 'usa')        -- only datapoints for Germany, China, U.S
+`,
+    r_code: `
+theme_set(theme_bw())
+
+### the current table is bound to the variable 'data'
+output <- ggplot(data, aes(x = time, y = co2_pcap_terr, color = country)) +
+  geom_line() +
+  labs(x = 'Jahr', y = 'CO2 Pro Kopf',
+       color = 'Land', title = 'Territorialer CO2 Ausstoß pro Kopf')
+
+plotly_json(output, pretty=FALSE)`
+  },
+  ////////////////////////////////////////////////////////////////////////////////
+  { // ------------------------------------------------------------
+    description: 'BIP (where)',
+    group: 'Übungsaufgaben',
+    sql_code: `
+-- Wie hoch war das pro-kopf BIP (GDP) in Deutschland im Jahr 2018, 2019, 2020 und 2021?
+-- Gib eine Tabelle mit nur diesen Zeilen aus.
+SELECT *
+FROM datapoints_gdp_pcap_by_country_time
+WHERE country = 'deu' -- ...`
+  },
+  { // ------------------------------------------------------------
+    description: 'Parliements (GROUP BY)',
+    group: 'Übungsaufgaben',
+    sql_code: `
+-- Was war der durchschnittliche Anteil von Frauen in Parlamenten
+-- nach dem Jahr 2000 pro Weltregion?
+SELECT *
+FROM datapoints_wn_bothhouses_c_by_world_4region_time
+WHERE time > 2000`
+  },
+  { // ------------------------------------------------------------
+    description: 'Parliements (GROUP BY)',
+    group: 'Übungsaufgaben',
+    sql_code: `
+-- Was war der durchschnittliche Anteil von Frauen in Parlamenten
+-- nach dem Jahr 2000 pro Weltregion?
+SELECT *
+FROM datapoints_wn_bothhouses_c_by_world_4region_time
+WHERE time > 2000`
+  },
+  { // ------------------------------------------------------------
+    description: 'Income vs LEx (JOIN)',
+    group: 'Übungsaufgaben',
+    sql_code: `
+SELECT income.time as year,
+       income.country as country,
+       income.mincpcap_cppp as daily_income_dollars,
+       life.lex as life_expectancy
+FROM datapoints_mincpcap_cppp_by_country_time income
+JOIN datapoints_lex_by_country_time life ON -- was fehlt hier?
+WHERE income.country = 'deu'
+ORDER BY year ASC`,
+    r_code: `
+theme_set(theme_bw())
+
+### the current table is bound to the variable 'data'
+output <- ggplot(data, aes(x = life_expectancy, y = daily_income_dollars, color = country, frame = year)) +
+  expand_limits(y = 0) +
+  geom_point() +
+  labs(x = 'Lebenserwartung', y = 'Tägliches Einkommen (Inflationsbereinigt)',
+       color = 'Land', title = 'Lebenserwartung vs. Tägliches Einkommen in Deutschland')
+
+plotly_json(output, pretty=FALSE)
+`
+  },
 ]
