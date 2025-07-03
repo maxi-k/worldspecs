@@ -8,7 +8,7 @@ import ErrorMessage from './components/ErrorMessage.js';
 import ResizeHandle from './components/ResizeHandle.js';
 import { toggleFavicon } from './components/favicons.js';
 import SAMPLE_QUERIES from './static/sample-queries.json';
-import { showToast } from '/util.js'
+import { copyToClipboard } from '/util.js'
 
 const app = {};
 ////////////////////////  SQL Editor  ///////////////////////
@@ -125,10 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // button for sharing url
   $('#share-btn').click(() => {
     // state.saveState();
-    const text = window.location.href;
-    navigator.clipboard.writeText(text).then(() => {
-      showToast("Link copied to clipboard!");
-    }).catch(err => console.error("Failed to copy: ", err));
+    copyToClipboard(window.location.href, "Link copied to clipboard!");
   });
 
   // button for downloading svg

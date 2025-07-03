@@ -1,6 +1,7 @@
 // For rendering EC2 Table
 import 'datatables.net-responsive-dt';
 import './ResultTable.css'
+import { copyToClipboard } from '/util.js'
 /// XXX replace cdn with js modules and bundle using vite
 
 export default class ResultTable {
@@ -17,7 +18,7 @@ export default class ResultTable {
       elem.DataTable().destroy();
     }
     let mappedCols = columns.map(key => ({ title: key, data: row => row[key] }));
-    let res = elem.empty().DataTable({
+    let tbl = elem.empty().DataTable({
       data: rows,
       columns: mappedCols,
       ordering: false,
@@ -40,6 +41,12 @@ export default class ResultTable {
       pageLength: 100, // default row count
       lengthMenu: [10, 25, 50, 100, 200, 1000]
     });
-  }
+
+    $(tbl.table().header()).on('click', 'th', function() {
+      let txt = $(this, '.dt-column-title').text();
+      copyToClipboard(txt, `'${txt}' copied to clipboard`);
+    });
+  };
+
 
 };

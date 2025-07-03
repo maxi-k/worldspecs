@@ -11,3 +11,9 @@ export const debounce = (callback, delay_ms) => {
     id = window.setTimeout(() => {callback(...args);}, delay_ms);
   };
 }
+
+export const copyToClipboard = (text, msg = "Copied to clipboard!") => {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(msg);
+    }).catch(err => console.error("Failed to copy: ", err));
+}
