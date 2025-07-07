@@ -44,6 +44,7 @@ export default class ResultTable {
 
     $(tbl.table().header()).on('click', 'th', function() {
       let txt = $(this, '.dt-column-title').text();
+      // console.log('copying', txt);
       copyToClipboard(txt, `'${txt}' copied to clipboard`);
     });
   };
