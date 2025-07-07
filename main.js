@@ -25,7 +25,8 @@ async function runQuery() {
   if (result.error) {
     state.setState({ result: { columns: [], rows: [], query }, sqlError: result.error });
   } else {
-    state.setState({ result: { columns: result.columns, rows: result.rows, query }, sqlError: '' });
+    let newState = { result: { columns: result.columns, rows: result.rows, query }, sqlError: '' };
+    state.setState('warning' in result ? { ...newState, sqlWarning: result.warning } : newState);
   }
 }
 
@@ -38,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // extraKeys: { 'Ctrl-Enter': runQuery }
   });
   // error message for SQL
-  app.sqlError = new ErrorMessage('#sql-status', 'sqlError');
+  app.sqlError = new ErrorMessage('#sql-status', ['sqlError', 'sqlWarning']);
 
   // Initialize database and result table
   app.db = await DB.create();

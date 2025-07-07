@@ -55,13 +55,17 @@ export default class DB {
   async query(q) {
     try {
       const response = await this.#conn.query(q);
-      return {
-        columns: response.schema.fields.map(field => field.name),
-        rows: // Bug fix explained at: https://github.com/GoogleChromeLabs/jsbi/issues/30
-        JSON.parse(JSON.stringify(response.toArray(), (key, value) =>
+      const columns = response.schema.fields.map(field => field.name);
+      // Bug fix explained at: https://github.com/GoogleChromeLabs/jsbi/issues/30
+      const rows = JSON.parse(JSON.stringify(response.toArray(), (key, value) =>
           typeof value === 'bigint' ? parseInt(value.toString()) : value // return everything else unchanged
-        ))
+      ));
+      let add = {};
+      if ((new Set(columns)).size != columns.length){
+        console.log("adding warning")
+        add.warning = 'Your query returns duplicate column names which may not be rendered correctly.';
       }
+      return { columns, rows, ...add };
     } catch (error) {
       return { error: error.toString()?.split("\n") }
     }
