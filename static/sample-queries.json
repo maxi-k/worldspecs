@@ -148,5 +148,28 @@
             "    theme_bw()",
             "",
             "plot(output); dev.off(); to_svg() # output to the html page"        ]
+    },
+    {
+        "description": "OLTP Transactions per $",
+        "sql_code": [
+            "SELECT value as txnpersec, release_year, price_hour, family, instance,",
+            "       case when processor_model like '%AMD%' then 'AMD' when arch = 'arm64' then 'Graviton' else 'Intel' end as Vendor, processor_model",
+            "FROM aws_all join (FROM benchmark WHERE benchmark = 'leanstore_tpcc_mean_txnpersec') using (instance)",
+            "order by specint/price_hour desc"
+        ],
+        "r_code": [
+            "to_svg <- svgstring(width = output.width.inch, height = output.height.inch, scaling = 1)",
+            "",
+            "output <- ggplot(df, aes(x = release_year, y = txnpersec/(price_hour/3600), colour = Vendor, group = Vendor)) +",
+            "    scale_x_continuous(limits=c(2013.5,2025)) +",
+            "    geom_line() +",
+            "    geom_label(aes(label = instance)) +",
+            "    ggtitle('OLTP Transactions per $') +",
+            "    ylab('LeanScore [Txn/$]')+",
+            "    expand_limits(y=0) +",
+            "    theme_bw()",
+            "",
+            "plot(output); dev.off(); to_svg() # output to html page"
+         ]
     }
 ]
