@@ -121,6 +121,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if ('result' in updates || 'rOutput' in updates) {
       state.saveState();
     }
+    if ('rOutput' in updates) {
+      // button for downloading svg
+      const dl = $('#svg-dl-btn');
+      const blob = new Blob([newState.rOutput], { type: 'image/svg+xml' });
+      const newUrl = URL.createObjectURL(blob);
+      const oldUrl = dl.attr('href');
+      if (!!oldUrl) { URL.revokeObjectURL(oldUrl); }
+      dl.attr('download', 'cloudspecs-plot.svg').attr('href', newUrl);
+    }
   }, ['result', 'rOutput']);
 
   // button for sharing url
@@ -129,15 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
     copyToClipboard(window.location.href, "Link copied to clipboard!");
   });
 
-  // button for downloading svg
-  $('#svg-dl-btn').click(() => {
-    const svgData = state.getState().rOutput;
-    const blob = new Blob([svgData], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    // download
-    window.open(url, '_blank');
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-  });
 
   // button for resetting page
   $('#reset-btn').click((e) => {
