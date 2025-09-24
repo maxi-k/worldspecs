@@ -1,5 +1,7 @@
 // main.js
 // Orchestrates components: state manager, code editors, database querying, and table rendering
+import './bootstrap.js'
+import 'jquery-ui/dist/jquery-ui.js';
 import state from './components/state.js';
 import CodeEditor from './components/CodeEditor.js';
 import DB from './components/db.js';
@@ -27,7 +29,8 @@ async function runQuery() {
   if (result.error) {
     state.setState({ result: { columns: [], rows: [], query }, sqlError: result.error });
   } else {
-    state.setState({ result: { columns: result.columns, rows: result.rows, query }, sqlError: '' });
+    let newState = { result: { columns: result.columns, rows: result.rows, query }, sqlError: '' };
+    state.setState('warning' in result ? { ...newState, sqlWarning: result.warning } : newState);
   }
 }
 
@@ -68,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // extraKeys: { 'Ctrl-Enter': runQuery }
   });
   // error message for SQL
-  app.sqlError = new ErrorMessage('#sql-status', 'sqlError');
+  app.sqlError = new ErrorMessage('#sql-status', ['sqlError', 'sqlWarning']);
 
   // Initialize database and result table
   app.db = await DB.create();
@@ -152,22 +155,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if ('result' in updates || 'rOutput' in updates) {
       state.saveState();
     }
+    if ('rOutput' in updates) {
+      // button for downloading svg
+      const dl = $('#svg-dl-btn');
+      const blob = new Blob([newState.rOutput], { type: 'image/svg+xml' });
+      const newUrl = URL.createObjectURL(blob);
+      const oldUrl = dl.attr('href');
+      if (!!oldUrl) { URL.revokeObjectURL(oldUrl); }
+      dl.attr('download', 'worldspecs-plot.svg').attr('href', newUrl);
+    }
   }, ['result', 'rOutput']);
 
   // button for sharing url
   $('#share-btn').click(() => {
+    // state.saveState();
     copyToClipboard(window.location.href, "Link copied to clipboard!");
   });
 
-  // button for downloading svg
-  $('#svg-dl-btn').click(() => {
-    const svgData = state.getState().rOutput;
-    const blob = new Blob([svgData], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    // download
-    window.open(url, '_blank');
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-  });
 
   // button for resetting page
   $('#reset-btn').click((e) => {

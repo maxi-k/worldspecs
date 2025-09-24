@@ -1,4 +1,6 @@
 import { WebR } from 'webr';
+import Plotly from 'plotly.js-dist-min'
+
 
 export default class RRepl {
   #webR; #outputSelector;

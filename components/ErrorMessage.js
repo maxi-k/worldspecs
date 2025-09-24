@@ -2,17 +2,22 @@ import state from './state.js';
 import LoadingBar from './LoadingBar.svg?raw'
 
 export default class ErrorMessage {
-  #selector; #stateKey;
+  #selector; #stateKeys;
 
-  constructor(selector, stateKey) {
+  constructor(selector, stateKeys) {
+    if (!Array.isArray(stateKeys)) {
+      stateKeys = [stateKeys];
+    }
     this.#selector = selector;
-    this.#stateKey = stateKey;
+    this.#stateKeys = stateKeys;
     state.subscribe((newState, updates) => {
-      if (this.#stateKey in updates) {
-        const newVal = newState[this.#stateKey];
-        this.render(newVal);
+      for (const key of this.#stateKeys) {
+        if (key in updates) {
+          const newVal = newState[key];
+          this.render(newVal);
+        }
       }
-    }, [this.#stateKey]);
+    }, this.#stateKeys);
   }
 
   render(message) {

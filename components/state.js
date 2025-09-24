@@ -3,6 +3,7 @@
 
 // Helper functions for Base64 encoding/decoding of URI components
 import LZString from 'lz-string';
+import { setGlobalError } from '/util.js'
 const encodeForURI = (str) => LZString.compressToEncodedURIComponent(str);
 const decodeFromURI = (str) => {
   try {
@@ -92,6 +93,11 @@ const saveState = () => {
   const newEncoded = encodeForURI(JSON.stringify(toEncode));
   // console.log('encoding ', newEncoded.length, ' bytes');
   const newUrl = window.location.origin + window.location.pathname + '?' + STATE_PARAM + '=' + newEncoded;
+  if (newUrl.length > 4096) {
+    setGlobalError(`Warning: the URL state is ${newUrl.length} bytes long. Your browsers may refuse to open it when you reload the page or try to share it.`);
+  } else {
+    setGlobalError('');
+  }
   window.history.replaceState(null, '', newUrl);
   // window.history.pushState(null, '', newUrl);
 }

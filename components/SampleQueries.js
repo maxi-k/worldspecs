@@ -1,5 +1,3 @@
-// import SAMPLE_QUERIES from '/static/sample-queries.json';
-
 export default class SampleQueries {
   #samplesTable; #dropdown;
   constructor(elemId, callback) {

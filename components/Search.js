@@ -6,7 +6,7 @@ const template = `
         <div class="search-wrapper">
             <input
                 type="text"
-                class="search-input button-dimensions"
+                class="search-input cs-button"
                 placeholder="Search tables..."
                 id="searchInput">
         </div>

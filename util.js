@@ -4,6 +4,10 @@ export const showToast = (message) => {
     setTimeout(() => { toast.removeClass("show"); }, 2000);
 }
 
+export const setGlobalError = (message) => {
+  $('#global-error').text(message);
+}
+
 export const debounce = (callback, delay_ms) => {
   let id = null;
   return (...args) => {
