@@ -10,6 +10,7 @@ import ErrorMessage from './components/ErrorMessage.js';
 import ResizeHandle from './components/ResizeHandle.js';
 import Search from './components/Search.js';
 import SampleQueries from './components/SampleQueries.js';
+import FileDropHandler from './components/FileDropHandler.js';
 import LoadingSpinner from './components/LoadingSpinner.svg?raw';
 import { toggleFavicon } from './components/favicons.js';
 import { showToast, copyToClipboard } from '/util.js'
@@ -94,6 +95,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (event.ctrlKey && event.key === 'Enter') {
       runQuery();
     }
+  });
+
+  // Initialize file drop handler
+  app.fileDropHandler = new FileDropHandler(app.db, (dbName, tableCount) => {
+    updateDatabaseStatus(dbName, tableCount !== null);
+    // Re-initialize search with new database
+    initializeSearch();
+    // Run a default query to show the new database structure
+    state.setState({ sqlQuery: 'SHOW TABLES;' });
+    runQuery();
   });
 
   // async functions, after DB is ready; not awaited
@@ -188,3 +199,44 @@ document.addEventListener('DOMContentLoaded', () => {
   // grid resize drag handler
   app.resizeHandle = new ResizeHandle('#app', '#grid-resize', '#toggle-viz-btn');
 });
+
+////////////////////////  Database Status Management  ///////////////////////
+function updateDatabaseStatus(dbName, isCustom) {
+  const dbStatus = document.getElementById('db-status');
+  const dbNameElement = document.getElementById('db-name');
+  
+  if (isCustom) {
+    dbStatus.classList.add('custom');
+    dbNameElement.textContent = dbName;
+    
+    // Add restore button if not already present
+    if (!dbStatus.querySelector('.db-restore-btn')) {
+      const restoreBtn = document.createElement('button');
+      restoreBtn.className = 'cs-button db-restore-btn';
+      restoreBtn.textContent = 'Restore Original';
+      restoreBtn.addEventListener('click', async () => {
+        try {
+          await app.fileDropHandler.restoreOriginalDatabase();
+          updateDatabaseStatus('worldspecs.duckdb', false);
+          // Re-initialize search with original database
+          initializeSearch();
+          // Run a default query
+          state.setState({ sqlQuery: 'describe' });
+          runQuery();
+        } catch (error) {
+          console.error('Error restoring database:', error);
+        }
+      });
+      dbStatus.appendChild(restoreBtn);
+    }
+  } else {
+    dbStatus.classList.remove('custom');
+    dbNameElement.textContent = dbName;
+    
+    // Remove restore button if present
+    const restoreBtn = dbStatus.querySelector('.db-restore-btn');
+    if (restoreBtn) {
+      restoreBtn.remove();
+    }
+  }
+}

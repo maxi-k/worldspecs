@@ -1,6 +1,8 @@
 
-export const showToast = (message) => {
+export const showToast = (message, type = 'info') => {
     const toast = $("#toast").text(message).addClass("show");
+    // Add type-specific styling if needed
+    toast.removeClass('toast-error toast-success toast-info').addClass(`toast-${type}`);
     setTimeout(() => { toast.removeClass("show"); }, 2000);
 }
 

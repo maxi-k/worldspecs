@@ -12,6 +12,9 @@
   --dt-html-background: white;
   --grey-bg: #f8f8f8;
   --grey-border: #ccc;
+  --drop-bg: rgba(13, 110, 253, 0.1);
+  --drop-border: #0d6efd;
+  --drop-text: #0d6efd;
 }
 
 :root.dark {
@@ -206,4 +209,76 @@ header {
 
 .cs-button:hover {
     text-decoration: none;
+}
+
+/* File Drop Handler Styles */
+.file-drop-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--drop-bg);
+  border: 3px dashed var(--drop-border);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+.file-drop-indicator.hidden {
+  display: none;
+}
+
+.drop-content {
+  text-align: center;
+  color: var(--drop-text);
+  user-select: none;
+}
+
+.drop-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.8;
+}
+
+.drop-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.drop-subtext {
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+/* Database status indicator */
+.db-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--grey-bg);
+  border: 1px solid var(--grey-border);
+  border-radius: 3px;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.db-status.custom {
+  background-color: var(--drop-bg);
+  border-color: var(--drop-border);
+  color: var(--drop-text);
+}
+
+.db-status-icon {
+  font-size: 0.9rem;
+}
+
+.db-restore-btn {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.4rem;
+  margin-left: 0.5rem;
 }

@@ -66,6 +66,11 @@ export default class DB {
     }
   }
 
+  // Method to register a file buffer for file drop functionality
+  async registerFileBuffer(filename, buffer) {
+    return await this.#db.registerFileBuffer(filename, buffer);
+  }
+
   static duckdbToJson(response) {
     return JSON.parse(JSON.stringify(response.toArray(), (key, value) => {
       return typeof value === 'bigint' ? parseInt(value.toString()) : value
